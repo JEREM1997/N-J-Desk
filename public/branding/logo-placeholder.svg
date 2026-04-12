@@ -1,0 +1,6 @@
+<svg width="256" height="64" viewBox="0 0 256 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" rx="16" fill="#111111"/>
+  <path d="M16 46V18h8l8 14 8-14h8v28h-8V31l-8 13h-.2l-7.8-12.9V46h-8Z" fill="white"/>
+  <text x="80" y="30" fill="#111111" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="600">N&amp;J Desk</text>
+  <text x="80" y="49" fill="#6E6E73" font-family="Inter, Arial, sans-serif" font-size="14">N&amp;J Intérieurs</text>
+</svg>
