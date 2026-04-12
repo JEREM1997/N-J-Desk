@@ -1,28 +1,29 @@
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { tasks } from '@/lib/mock-data';
 
 export default function TasksPage() {
   return (
     <section className="space-y-6 animate-fadeIn">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Tâches</h1>
+        <h1 className="luxury-title">Tâches</h1>
         <p className="text-sm text-muted">Pilotage des urgences et échéances.</p>
       </div>
-      <Card className="space-y-4">
+      <Card className="space-y-5">
         <div className="grid gap-3 md:grid-cols-5">
-          <input className="rounded-xl border bg-white px-3 py-2 text-sm md:col-span-2" placeholder="Nouvelle tâche" />
-          <input className="rounded-xl border bg-white px-3 py-2 text-sm" type="date" />
-          <select className="rounded-xl border bg-white px-3 py-2 text-sm">
+          <input className="md:col-span-2" placeholder="Nouvelle tâche" />
+          <input type="date" />
+          <select>
             <option>Priorité</option>
             <option>Critique</option>
             <option>Haute</option>
           </select>
-          <button className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white">Créer</button>
+          <Button>Créer</Button>
         </div>
-        <ul className="space-y-2">
+        <ul className="space-y-2.5">
           {tasks.map((task) => (
-            <li key={task.id} className="flex items-center justify-between rounded-xl border px-3 py-2">
+            <li key={task.id} className="premium-hover flex items-center justify-between rounded-xl border border-black/[0.05] px-3 py-2.5">
               <div>
                 <p className="text-sm font-medium">{task.title}</p>
                 <p className="text-xs text-muted">Échéance {task.dueDate} · Statut {task.status}</p>

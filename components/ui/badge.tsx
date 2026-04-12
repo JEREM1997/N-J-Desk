@@ -1,10 +1,10 @@
 import { cn } from '@/lib/utils';
 
 const tones = {
-  default: 'bg-black/5 text-foreground',
-  success: 'bg-emerald-100 text-emerald-700',
-  warning: 'bg-amber-100 text-amber-700',
-  muted: 'bg-zinc-100 text-zinc-600'
+  default: 'border-black/5 bg-black/5 text-foreground',
+  success: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+  warning: 'border-amber-200 bg-amber-50 text-amber-700',
+  muted: 'border-zinc-200 bg-zinc-100 text-zinc-600'
 };
 
 export function Badge({
@@ -14,7 +14,11 @@ export function Badge({
 }: React.HTMLAttributes<HTMLSpanElement> & { tone?: keyof typeof tones }) {
   return (
     <span
-      className={cn('inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium', tones[tone], className)}
+      className={cn(
+        'inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em]',
+        tones[tone],
+        className
+      )}
       {...props}
     />
   );
