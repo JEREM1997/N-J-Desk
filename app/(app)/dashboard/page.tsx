@@ -12,27 +12,35 @@ const kpis = [
 
 export default function DashboardPage() {
   return (
-    <section className="space-y-6 animate-fadeIn">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Tableau de bord</h1>
-        <p className="mt-1 text-sm text-muted">Vision claire des activités N&J Intérieurs.</p>
+    <section className="space-y-7 animate-fadeIn">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">N&J Desk</p>
+          <h1 className="luxury-title">Tableau de bord</h1>
+          <p className="mt-1 text-sm text-muted">Vision claire et premium des activités N&J Intérieurs.</p>
+        </div>
+        <div className="hidden rounded-xl border bg-white/80 px-4 py-2 text-xs font-medium text-muted shadow-sm lg:block">
+          Mise à jour en temps réel
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-5">
         {kpis.map((kpi) => (
-          <Card key={kpi.label} className="space-y-1">
-            <p className="text-xs text-muted">{kpi.label}</p>
-            <p className="text-2xl font-semibold tracking-tight">{kpi.value}</p>
+          <Card key={kpi.label} className="premium-hover space-y-2 p-5">
+            <p className="text-[11px] uppercase tracking-[0.1em] text-muted">{kpi.label}</p>
+            <p className="text-3xl font-semibold tracking-tight">{kpi.value}</p>
           </Card>
         ))}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
-          <h2 className="text-sm font-semibold">Activité récente</h2>
+          <div className="subtle-divider pb-3">
+            <h2 className="text-sm font-semibold">Activité récente</h2>
+          </div>
           <ul className="mt-4 space-y-3 text-sm text-muted">
             {activityLogs.map((log) => (
-              <li key={log} className="rounded-xl bg-black/[0.02] px-3 py-2">
+              <li key={log} className="premium-hover rounded-xl border border-black/[0.04] bg-black/[0.02] px-3 py-2.5">
                 {log}
               </li>
             ))}
@@ -40,10 +48,12 @@ export default function DashboardPage() {
         </Card>
 
         <Card>
-          <h2 className="text-sm font-semibold">Tâches prioritaires</h2>
+          <div className="subtle-divider pb-3">
+            <h2 className="text-sm font-semibold">Tâches prioritaires</h2>
+          </div>
           <ul className="mt-4 space-y-3">
             {tasks.map((task) => (
-              <li key={task.id} className="flex items-center justify-between rounded-xl border px-3 py-2">
+              <li key={task.id} className="premium-hover flex items-center justify-between rounded-xl border border-black/[0.05] px-3 py-2.5">
                 <div>
                   <p className="text-sm font-medium">{task.title}</p>
                   <p className="text-xs text-muted">Échéance {task.dueDate}</p>

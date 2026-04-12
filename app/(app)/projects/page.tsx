@@ -16,9 +16,9 @@ const statusLabel = {
 export default function ProjectsPage() {
   return (
     <section className="space-y-6 animate-fadeIn">
-      <div className="flex items-end justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Chantiers</h1>
+          <h1 className="luxury-title">Chantiers</h1>
           <p className="text-sm text-muted">Suivi opérationnel et financier de vos dossiers.</p>
         </div>
         <Button>Nouveau chantier</Button>
@@ -28,7 +28,7 @@ export default function ProjectsPage() {
         {projects.map((project) => {
           const client = clients.find((entry) => entry.id === project.clientId);
           return (
-            <Card key={project.id} className="space-y-4">
+            <Card key={project.id} className="space-y-4 premium-hover">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-lg font-semibold tracking-tight">{project.title}</h2>
@@ -37,7 +37,7 @@ export default function ProjectsPage() {
                 <Badge tone={project.status === 'en_cours' ? 'success' : 'default'}>{statusLabel[project.status]}</Badge>
               </div>
 
-              <div className="grid gap-3 text-sm text-muted md:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-3 rounded-xl border border-black/[0.04] bg-black/[0.015] p-3 text-sm text-muted md:grid-cols-2 lg:grid-cols-4">
                 <p>Client : {client?.firstName} {client?.lastName}</p>
                 <p>Début : {project.startDate}</p>
                 <p>Fin estimée : {project.estimatedEndDate}</p>
@@ -50,7 +50,7 @@ export default function ProjectsPage() {
               <div className="grid gap-4 lg:grid-cols-3">
                 <Card className="bg-black/[0.015] shadow-none">
                   <h3 className="text-sm font-semibold">Tâches associées</h3>
-                  <ul className="mt-2 text-sm text-muted">
+                  <ul className="mt-2 space-y-1 text-sm text-muted">
                     <li>• Commande matériaux</li>
                     <li>• Validation planning équipe</li>
                   </ul>
@@ -67,11 +67,11 @@ export default function ProjectsPage() {
                 </Card>
               </div>
 
-              <textarea className="w-full rounded-xl border bg-white px-4 py-3 text-sm" defaultValue={project.internalNotes} />
+              <textarea defaultValue={project.internalNotes} />
 
               <div className="flex gap-2">
                 <Button className="bg-zinc-900">Modifier</Button>
-                <Button className="bg-zinc-200 text-zinc-800 hover:bg-zinc-300">Supprimer</Button>
+                <Button className="border border-zinc-300 bg-zinc-100 text-zinc-800 shadow-none hover:bg-zinc-200">Supprimer</Button>
               </div>
             </Card>
           );
