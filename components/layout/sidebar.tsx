@@ -1,8 +1,10 @@
+import type { Route } from 'next';
+import type { ComponentType } from 'react';
 import Link from 'next/link';
 import { LayoutDashboard, Users, Hammer, CheckSquare, Settings } from 'lucide-react';
 import { BrandLogo } from './brand-logo';
 
-const links = [
+const links: { href: Route; label: string; icon: ComponentType<{ className?: string }> }[] = [
   { href: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
   { href: '/clients', label: 'Clients', icon: Users },
   { href: '/projects', label: 'Chantiers', icon: Hammer },
