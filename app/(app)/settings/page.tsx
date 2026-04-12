@@ -6,7 +6,7 @@ export default function SettingsPage() {
     <section className="space-y-6 animate-fadeIn">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Paramètres</h1>
-        <p className="text-sm text-muted">Configuration de l'espace N&J Intérieurs.</p>
+        <p className="text-sm text-muted">Configuration de l&apos;espace N&J Intérieurs.</p>
       </div>
       <Card className="space-y-4">
         <h2 className="text-sm font-semibold">Identité de la société</h2>
