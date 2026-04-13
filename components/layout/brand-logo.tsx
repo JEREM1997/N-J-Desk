@@ -12,7 +12,7 @@ export function BrandLogo({ compact = false }: { compact?: boolean }) {
         )}
       >
         <Image
-          src="/branding/nj-signature.svg"
+          src="/branding/LOGO%20N%26J.jpg"
           alt="N&J Intérieurs"
           width={64}
           height={64}

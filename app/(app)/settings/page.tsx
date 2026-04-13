@@ -12,7 +12,7 @@ export default function SettingsPage() {
         <h2 className="text-sm font-semibold">Identité de la société</h2>
         <input className="w-full" defaultValue="N&J Intérieurs" />
         <div className="rounded-xl border border-dashed bg-black/[0.02] p-4 text-sm text-muted">
-          Logo actuel : <code>public/branding/nj-signature.svg</code>
+          Logo actuel : <code>public/branding/LOGO N&J.jpg</code>
           <input type="file" className="mt-2 block w-full text-xs" />
         </div>
       </Card>
