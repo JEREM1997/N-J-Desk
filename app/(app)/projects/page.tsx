@@ -1,11 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { clients, projects as initialProjects } from '@/lib/mock-data';
-import { Project, ProjectStatus } from '@/lib/types';
+import { Project, ProjectStatus, Client } from '@/lib/types';
+import { createActivityLog } from '@/lib/repositories/activity-logs';
+import { listClients } from '@/lib/repositories/clients';
+import { createProject, deleteProject, listProjects, updateProject } from '@/lib/repositories/projects';
 
 const statusLabel: Record<ProjectStatus, string> = {
   prospect: 'Prospect',
@@ -17,60 +19,115 @@ const statusLabel: Record<ProjectStatus, string> = {
   sav: 'SAV'
 };
 
-const emptyProjectDraft = {
-  title: '',
-  address: '',
-  clientId: clients[0]?.id ?? '',
-  status: 'prospect' as ProjectStatus
-};
-
 function getCityFromAddress(address: string) {
   const chunks = address.split(',').map((chunk) => chunk.trim()).filter(Boolean);
   return chunks[chunks.length - 1] ?? '';
 }
 
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat('fr-CH', {
+    style: 'currency',
+    currency: 'CHF',
+    maximumFractionDigits: 0
+  }).format(value || 0);
+}
+
 export default function ProjectsPage() {
-  const [projectItems, setProjectItems] = useState<Project[]>(initialProjects);
-  const [draft, setDraft] = useState(emptyProjectDraft);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [projectItems, setProjectItems] = useState<Project[]>([]);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [draft, setDraft] = useState({
+    title: '',
+    address: '',
+    clientId: '',
+    status: 'prospect' as ProjectStatus
+  });
+
+  const loadData = async () => {
+    try {
+      setError(null);
+      const [clientRows, projectRows] = await Promise.all([listClients(), listProjects()]);
+      setClients(clientRows);
+      setProjectItems(projectRows);
+      setDraft((current) => ({ ...current, clientId: current.clientId || clientRows[0]?.id || '' }));
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Erreur de chargement');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadData();
+  }, []);
 
   const sortedProjects = useMemo(
     () => [...projectItems].sort((a, b) => a.startDate.localeCompare(b.startDate) * -1),
     [projectItems]
   );
 
-  const createProject = () => {
+  const handleCreateProject = async () => {
     if (!draft.title.trim() || !draft.address.trim() || !draft.clientId) return;
+    const selectedClient = clients.find((entry) => entry.id === draft.clientId);
+    const normalizedSiteAddress = draft.address.trim().toLowerCase();
+    const normalizedClientAddress = selectedClient?.address.trim().toLowerCase() ?? '';
 
-    const newProject: Project = {
-      id: `cha_${crypto.randomUUID().slice(0, 8)}`,
-      title: draft.title.trim(),
-      address: draft.address.trim(),
-      clientId: draft.clientId,
-      status: draft.status,
-      description: '',
-      startDate: new Date().toISOString().slice(0, 10),
-      estimatedEndDate: '',
-      quoteAmount: 0,
-      billedAmount: 0,
-      depositReceived: 0,
-      balanceReceived: 0,
-      internalNotes: ''
-    };
+    if (selectedClient && normalizedClientAddress && normalizedSiteAddress === normalizedClientAddress) {
+      setError('L’adresse du chantier doit être différente de l’adresse client.');
+      return;
+    }
 
-    setProjectItems((current) => [newProject, ...current]);
-    setDraft(emptyProjectDraft);
+    try {
+      setError(null);
+      const created = await createProject({
+        title: draft.title.trim(),
+        address: draft.address.trim(),
+        clientId: draft.clientId,
+        status: draft.status,
+        description: '',
+        startDate: new Date().toISOString().slice(0, 10),
+        estimatedEndDate: '',
+        quoteAmount: 0,
+        billedAmount: 0,
+        depositReceived: 0,
+        balanceReceived: 0,
+        internalNotes: ''
+      });
+
+      setProjectItems((current) => [created, ...current]);
+      await createActivityLog({ actionType: 'project_created', message: `Chantier créé : ${created.title}.`, projectId: created.id });
+      setDraft((current) => ({ ...current, title: '', address: '' }));
+    } catch (createError) {
+      setError(createError instanceof Error ? createError.message : 'Création impossible');
+    }
   };
 
-  const deleteProject = (id: string) => {
-    setProjectItems((current) => current.filter((project) => project.id !== id));
-    if (editingProjectId === id) setEditingProjectId(null);
+  const handleDeleteProject = async (id: string) => {
+    const project = projectItems.find((entry) => entry.id === id);
+
+    try {
+      await deleteProject(id);
+      setProjectItems((current) => current.filter((entry) => entry.id !== id));
+      if (project) {
+        await createActivityLog({ actionType: 'project_deleted', message: `Chantier supprimé : ${project.title}.`, projectId: id });
+      }
+      if (editingProjectId === id) setEditingProjectId(null);
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : 'Suppression impossible');
+    }
   };
 
-  const updateProjectNote = (id: string, note: string) => {
-    setProjectItems((current) =>
-      current.map((project) => (project.id === id ? { ...project, internalNotes: note } : project))
-    );
+  const handleProjectFieldChange = async <K extends keyof Project>(id: string, field: K, value: Project[K]) => {
+    setProjectItems((current) => current.map((project) => (project.id === id ? { ...project, [field]: value } : project)));
+
+    try {
+      const updated = await updateProject(id, { [field]: value } as Partial<Omit<Project, 'id'>>);
+      setProjectItems((current) => current.map((project) => (project.id === id ? updated : project)));
+    } catch {
+      await loadData();
+    }
   };
 
   return (
@@ -101,57 +158,96 @@ export default function ProjectsPage() {
               </option>
             ))}
           </select>
-          <Button onClick={createProject}>Nouveau chantier</Button>
+          <Button onClick={handleCreateProject}>Nouveau chantier</Button>
         </div>
       </div>
 
-      <div className="space-y-4">
-        {sortedProjects.map((project) => {
-          const client = clients.find((entry) => entry.id === project.clientId);
-          const city = getCityFromAddress(project.address);
-          const isEditing = editingProjectId === project.id;
+      {error && <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
 
-          return (
-            <Card key={project.id} className="space-y-4 premium-hover">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-lg font-semibold tracking-tight">{project.title}</h2>
-                  <p className="text-sm text-muted">
-                    {project.address}
-                    {city && client?.postalCode ? ` · ${client.postalCode} ${city}` : ''}
-                  </p>
+      {loading ? (
+        <Card>
+          <p className="text-sm text-muted">Chargement des chantiers…</p>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {sortedProjects.map((project) => {
+            const client = clients.find((entry) => entry.id === project.clientId);
+            const city = getCityFromAddress(project.address);
+            const isEditing = editingProjectId === project.id;
+            const remainingToBill = Math.max(project.quoteAmount - project.billedAmount, 0);
+            const remainingToCollect = Math.max(project.quoteAmount - project.balanceReceived, 0);
+
+            return (
+              <Card key={project.id} className="space-y-4 premium-hover">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-lg font-semibold tracking-tight">{project.title}</h2>
+                    <p className="text-sm text-muted">
+                      {project.address}
+                      {city && client?.postalCode ? ` · ${client.postalCode} ${city}` : ''}
+                    </p>
+                  </div>
+                  <Badge tone={project.status === 'en_cours' ? 'success' : 'default'}>{statusLabel[project.status]}</Badge>
                 </div>
-                <Badge tone={project.status === 'en_cours' ? 'success' : 'default'}>{statusLabel[project.status]}</Badge>
-              </div>
 
-              <div className="grid gap-3 rounded-xl border border-black/[0.04] bg-black/[0.015] p-3 text-sm text-muted md:grid-cols-2 lg:grid-cols-4">
-                <p>Client : {client?.firstName} {client?.lastName}</p>
-                <p>Téléphone : {client?.phone ?? 'Non renseigné'}</p>
-                <p>Code postal : {client?.postalCode ?? 'Non renseigné'}</p>
-                <p>Début : {project.startDate}</p>
-              </div>
+                <div className="grid gap-3 rounded-xl border border-black/[0.04] bg-black/[0.015] p-3 text-sm text-muted md:grid-cols-2 lg:grid-cols-4">
+                  <p>Client : {client?.firstName} {client?.lastName}</p>
+                  <p>Téléphone : {client?.phone ?? 'Non renseigné'}</p>
+                  <p>Code postal : {client?.postalCode ?? 'Non renseigné'}</p>
+                  <p>Adresse client : {client?.address || 'Non renseigné'}</p>
+                  <p>Début : {project.startDate}</p>
+                </div>
 
-              <textarea
-                value={project.internalNotes}
-                onChange={(event) => updateProjectNote(project.id, event.target.value)}
-                placeholder="Notes internes"
-              />
+                <div className="grid gap-3 rounded-xl border border-emerald-100 bg-emerald-50/40 p-3 text-sm md:grid-cols-2 lg:grid-cols-3">
+                  <p>Montant devis : <span className="font-semibold text-foreground">{formatCurrency(project.quoteAmount)}</span></p>
+                  <p>Montant facturé : <span className="font-semibold text-foreground">{formatCurrency(project.billedAmount)}</span></p>
+                  <p>Acompte encaissé : <span className="font-semibold text-foreground">{formatCurrency(project.depositReceived)}</span></p>
+                  <p>Solde encaissé : <span className="font-semibold text-foreground">{formatCurrency(project.balanceReceived)}</span></p>
+                  <p>Reste à facturer : <span className="font-semibold text-amber-700">{formatCurrency(remainingToBill)}</span></p>
+                  <p>Reste à encaisser : <span className="font-semibold text-rose-700">{formatCurrency(remainingToCollect)}</span></p>
+                </div>
 
-              <div className="flex gap-2">
-                <Button className="bg-zinc-900" onClick={() => setEditingProjectId(isEditing ? null : project.id)}>
-                  {isEditing ? 'Terminer la modification' : 'Modifier'}
-                </Button>
-                <Button
-                  className="border border-zinc-300 bg-zinc-100 text-zinc-800 shadow-none hover:bg-zinc-200"
-                  onClick={() => deleteProject(project.id)}
-                >
-                  Supprimer
-                </Button>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+                {isEditing && (
+                  <div className="grid gap-2 rounded-xl border border-black/[0.06] bg-white p-3 md:grid-cols-2 lg:grid-cols-3">
+                    <input type="number" min={0} value={project.quoteAmount} onChange={(event) => void handleProjectFieldChange(project.id, 'quoteAmount', Number(event.target.value) || 0)} placeholder="Montant devis" />
+                    <input type="number" min={0} value={project.billedAmount} onChange={(event) => void handleProjectFieldChange(project.id, 'billedAmount', Number(event.target.value) || 0)} placeholder="Montant facturé" />
+                    <input type="number" min={0} value={project.depositReceived} onChange={(event) => void handleProjectFieldChange(project.id, 'depositReceived', Number(event.target.value) || 0)} placeholder="Acompte encaissé" />
+                    <input type="number" min={0} value={project.balanceReceived} onChange={(event) => void handleProjectFieldChange(project.id, 'balanceReceived', Number(event.target.value) || 0)} placeholder="Solde encaissé" />
+                    <input type="date" value={project.startDate} onChange={(event) => void handleProjectFieldChange(project.id, 'startDate', event.target.value)} />
+                    <input type="date" value={project.estimatedEndDate} onChange={(event) => void handleProjectFieldChange(project.id, 'estimatedEndDate', event.target.value)} />
+                    <select value={project.status} onChange={(event) => void handleProjectFieldChange(project.id, 'status', event.target.value as ProjectStatus)}>
+                      {Object.entries(statusLabel).map(([key, label]) => (
+                        <option key={key} value={key}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {project.balanceReceived > project.quoteAmount && (
+                  <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                    Attention : les encaissements dépassent le montant devis.
+                  </p>
+                )}
+
+                <textarea
+                  value={project.internalNotes}
+                  onChange={(event) => void handleProjectFieldChange(project.id, 'internalNotes', event.target.value)}
+                  placeholder="Notes internes"
+                />
+
+                <div className="flex gap-2">
+                  <Button className="bg-zinc-900" onClick={() => setEditingProjectId(isEditing ? null : project.id)}>
+                    {isEditing ? 'Terminer la modification' : 'Modifier'}
+                  </Button>
+                  <Button className="border border-zinc-300 bg-zinc-100 text-zinc-800 shadow-none hover:bg-zinc-200" onClick={() => void handleDeleteProject(project.id)}>
+                    Supprimer
+                  </Button>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }
