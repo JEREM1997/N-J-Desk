@@ -45,3 +45,29 @@ export interface Task {
   projectId?: string;
   clientId?: string;
 }
+
+export interface ProjectDocument {
+  id: string;
+  projectId: string;
+  fileName: string;
+  category: 'devis' | 'facture' | 'plan' | 'contrat' | 'autre';
+  uploadedAt: string;
+}
+
+export interface ProjectPhoto {
+  id: string;
+  projectId: string;
+  phase: 'avant' | 'apres';
+  caption: string;
+  uploadedAt: string;
+}
+
+export interface ServiceTicket {
+  id: string;
+  projectId: string;
+  clientId: string;
+  title: string;
+  priority: Priority;
+  status: 'ouvert' | 'planifie' | 'resolu';
+  dueDate: string;
+}

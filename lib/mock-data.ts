@@ -1,4 +1,4 @@
-import { Client, Project, Task } from '@/lib/types';
+import { Client, Project, ProjectDocument, ProjectPhoto, ServiceTicket, Task } from '@/lib/types';
 
 export const clients: Client[] = [
   {
@@ -80,4 +80,50 @@ export const activityLogs = [
   'Nouveau document ajouté : plan_eclairage_v3.pdf',
   'Note client mise à jour pour Camille Lemaire.',
   'Acompte reçu pour “Aménagement suite parentale”.'
+];
+
+export const projectDocuments: ProjectDocument[] = [
+  {
+    id: 'doc_001',
+    projectId: 'cha_001',
+    fileName: 'devis_cuisine_v2.pdf',
+    category: 'devis',
+    uploadedAt: '2026-04-05'
+  },
+  {
+    id: 'doc_002',
+    projectId: 'cha_001',
+    fileName: 'plan_eclairage_v3.pdf',
+    category: 'plan',
+    uploadedAt: '2026-04-09'
+  }
+];
+
+export const projectPhotos: ProjectPhoto[] = [
+  {
+    id: 'pho_001',
+    projectId: 'cha_001',
+    phase: 'avant',
+    caption: 'État initial cuisine',
+    uploadedAt: '2026-03-09'
+  },
+  {
+    id: 'pho_002',
+    projectId: 'cha_001',
+    phase: 'apres',
+    caption: 'Cuisine terminée - pose finale',
+    uploadedAt: '2026-05-22'
+  }
+];
+
+export const serviceTickets: ServiceTicket[] = [
+  {
+    id: 'sav_001',
+    projectId: 'cha_001',
+    clientId: 'cli_001',
+    title: 'Réglage porte placard cuisine',
+    priority: 'moyenne',
+    status: 'ouvert',
+    dueDate: '2026-06-02'
+  }
 ];
