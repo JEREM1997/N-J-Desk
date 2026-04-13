@@ -6,14 +6,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-transparent md:flex">
       <Sidebar />
-      <main className="flex-1">
-        <header className="sticky top-0 z-10 border-b border-white/70 bg-background/80 px-5 py-4 backdrop-blur md:hidden">
+      <main className="relative flex-1">
+        <header className="sticky top-0 z-20 border-b border-white/70 bg-background/80 px-4 py-3 backdrop-blur md:hidden">
           <div className="flex items-center justify-between">
             <BrandLogo compact />
           </div>
           <MobileNav />
         </header>
-        <div className="mx-auto max-w-7xl px-5 py-6 md:px-8 md:py-9">{children}</div>
+        <div className="mx-auto w-full max-w-[1280px] px-4 py-5 sm:px-6 md:px-8 md:py-8 xl:px-10">{children}</div>
       </main>
     </div>
   );
