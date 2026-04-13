@@ -111,7 +111,7 @@ export async function ensureUserProfile(session: SupabaseAuthSession) {
   const existing = (await selectResponse.json()) as Array<{ id: string }>;
   if (existing.length > 0) return;
 
-  await fetch(`${config.url}/rest/v1/users`, {
+  const insertResponse = await fetch(`${config.url}/rest/v1/users`, {
     method: 'POST',
     headers: {
       apikey: config.anonKey,
@@ -123,4 +123,42 @@ export async function ensureUserProfile(session: SupabaseAuthSession) {
       auth_user_id: session.user.id
     })
   });
+
+  if (!insertResponse.ok) {
+    const error = await insertResponse.json().catch(() => ({}));
+    throw new Error(error.message || error.error || 'Impossible de créer le profil utilisateur');
+  }
+}
+
+export async function getCurrentOwnerId(sessionArg?: SupabaseAuthSession) {
+  const config = getSupabaseConfig();
+  const session = sessionArg ?? getStoredSession();
+  if (!config || !session?.access_token) {
+    throw new Error('Session Supabase manquante');
+  }
+
+  await ensureUserProfile(session);
+
+  const response = await fetch(
+    `${config.url}/rest/v1/users?select=id&auth_user_id=eq.${session.user.id}&limit=1`,
+    {
+      method: 'GET',
+      headers: {
+        apikey: config.anonKey,
+        Authorization: `Bearer ${session.access_token}`
+      }
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || error.error || 'Impossible de lire le profil utilisateur');
+  }
+
+  const rows = (await response.json()) as Array<{ id: string }>;
+  if (!rows[0]?.id) {
+    throw new Error('Profil utilisateur introuvable pour owner_id');
+  }
+
+  return rows[0].id;
 }

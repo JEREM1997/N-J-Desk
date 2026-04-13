@@ -1,4 +1,14 @@
-import { getStoredSession, getSupabaseConfig } from '@/lib/supabase';
+import { getCurrentOwnerId, getStoredSession, getSupabaseConfig } from '@/lib/supabase';
+
+const OWNER_SCOPED_TABLES = new Set([
+  'clients',
+  'projects',
+  'tasks',
+  'documents',
+  'photos',
+  'activity_logs',
+  'service_tickets'
+]);
 
 async function buildSupabaseError(response: Response, fallback: string) {
   const payload = await response.json().catch(() => null);
@@ -56,13 +66,18 @@ export async function supabaseSelect<T>(table: string, query: string) {
 
 export async function supabaseInsert<T>(table: string, payload: Record<string, unknown>) {
   const { config, headers } = getAuthHeaders();
+  const enrichedPayload =
+    OWNER_SCOPED_TABLES.has(table) && payload.owner_id === undefined
+      ? { ...payload, owner_id: await getCurrentOwnerId() }
+      : payload;
+
   const response = await fetch(`${config.url}/rest/v1/${table}`, {
     method: 'POST',
     headers: {
       ...headers,
       Prefer: 'return=representation'
     },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(enrichedPayload)
   });
 
   if (!response.ok) {

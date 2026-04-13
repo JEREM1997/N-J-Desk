@@ -7,6 +7,7 @@ import { ensureUserProfile, getStoredSession } from '@/lib/supabase';
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const bootstrapSession = async () => {
@@ -16,14 +17,21 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      await ensureUserProfile(session);
-      setReady(true);
+      try {
+        await ensureUserProfile(session);
+        setReady(true);
+      } catch (profileError) {
+        setError(profileError instanceof Error ? profileError.message : 'Session invalide');
+      }
     };
 
     void bootstrapSession();
   }, [router]);
 
   if (!ready) {
+    if (error) {
+      return <div className="p-6 text-sm text-rose-700">Erreur session: {error}</div>;
+    }
     return <div className="p-6 text-sm text-muted">Vérification de la session…</div>;
   }
 
