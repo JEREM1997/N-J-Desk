@@ -41,9 +41,35 @@ Ouvrir `http://localhost:3000`.
 ## Configuration Supabase
 
 1. Créez un projet Supabase.
-2. Renseignez les variables dans `.env.local`.
-3. Exécutez `supabase/schema.sql` puis `supabase/seed.sql` dans SQL Editor.
-4. Créez un bucket Storage (ex: `project-files`) pour documents/photos.
+2. Copiez `.env.example` vers `.env.local`.
+3. Renseignez **obligatoirement** :
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+4. Exécutez `supabase/schema.sql`, puis `supabase/seed.sql`, puis `supabase/rls.sql` dans SQL Editor (`rls.sql` est idempotent, vous pouvez le rejouer).
+5. Si votre DB existait déjà avant ces évolutions, exécutez aussi `supabase/patch_required_fields.sql`.
+6. Créez un bucket Storage (ex: `project-files`) pour documents/photos.
+
+Exemple :
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+```
+
+### Déploiement Vercel (important)
+
+Ajoutez les mêmes variables dans **Vercel > Project Settings > Environment Variables** :
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+Si elles ne sont pas définies, l'authentification ne peut pas fonctionner.
+
+## Playbook d'intégration Supabase
+
+L'ordre recommandé d'implémentation est documenté ici :
+
+- `docs/supabase-integration-playbook.md`
 
 ## Schéma base de données
 
@@ -56,6 +82,7 @@ Tables incluses :
 - `documents`
 - `photos`
 - `activity_logs`
+- `service_tickets`
 
 Le schéma gère : relations, statuts, timestamps et champs financiers pour faire évoluer le produit.
 
@@ -65,4 +92,3 @@ Le schéma gère : relations, statuts, timestamps et champs financiers pour fair
 - Composants réutilisables (Card, Button, Badge)
 - Sidebar et cartes conçues pour un rendu SaaS haut de gamme
 - Responsive desktop + mobile
-
