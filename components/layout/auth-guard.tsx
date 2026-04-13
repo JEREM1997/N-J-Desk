@@ -2,20 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getStoredSession } from '@/lib/supabase';
+import { ensureUserProfile, getStoredSession } from '@/lib/supabase';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const session = getStoredSession();
-    if (!session?.access_token) {
-      router.replace('/login');
-      return;
-    }
+    const bootstrapSession = async () => {
+      const session = getStoredSession();
+      if (!session?.access_token) {
+        router.replace('/login');
+        return;
+      }
 
-    setReady(true);
+      await ensureUserProfile(session);
+      setReady(true);
+    };
+
+    void bootstrapSession();
   }, [router]);
 
   if (!ready) {

@@ -1,5 +1,22 @@
 import { getStoredSession, getSupabaseConfig } from '@/lib/supabase';
 
+async function buildSupabaseError(response: Response, fallback: string) {
+  const payload = await response.json().catch(() => null);
+
+  if (payload && typeof payload === 'object') {
+    const details =
+      (typeof payload.message === 'string' && payload.message) ||
+      (typeof payload.error_description === 'string' && payload.error_description) ||
+      (typeof payload.error === 'string' && payload.error) ||
+      (typeof payload.hint === 'string' && payload.hint) ||
+      '';
+
+    if (details) return `${fallback} (${details})`;
+  }
+
+  return `${fallback} (HTTP ${response.status})`;
+}
+
 function getAuthHeaders() {
   const config = getSupabaseConfig();
   if (!config) {
@@ -31,7 +48,7 @@ export async function supabaseSelect<T>(table: string, query: string) {
   });
 
   if (!response.ok) {
-    throw new Error(`Erreur lecture ${table}`);
+    throw new Error(await buildSupabaseError(response, `Erreur lecture ${table}`));
   }
 
   return (await response.json()) as T[];
@@ -49,7 +66,7 @@ export async function supabaseInsert<T>(table: string, payload: Record<string, u
   });
 
   if (!response.ok) {
-    throw new Error(`Erreur création ${table}`);
+    throw new Error(await buildSupabaseError(response, `Erreur création ${table}`));
   }
 
   const rows = (await response.json()) as T[];
@@ -68,7 +85,7 @@ export async function supabaseUpdate<T>(table: string, id: string, payload: Reco
   });
 
   if (!response.ok) {
-    throw new Error(`Erreur modification ${table}`);
+    throw new Error(await buildSupabaseError(response, `Erreur modification ${table}`));
   }
 
   const rows = (await response.json()) as T[];
@@ -83,7 +100,7 @@ export async function supabaseDelete(table: string, id: string) {
   });
 
   if (!response.ok) {
-    throw new Error(`Erreur suppression ${table}`);
+    throw new Error(await buildSupabaseError(response, `Erreur suppression ${table}`));
   }
 }
 
@@ -102,6 +119,6 @@ export async function supabaseUploadObject(bucket: string, objectPath: string, f
   });
 
   if (!response.ok) {
-    throw new Error('Upload fichier impossible');
+    throw new Error(await buildSupabaseError(response, 'Upload fichier impossible'));
   }
 }

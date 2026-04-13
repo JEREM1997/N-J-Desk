@@ -3,7 +3,7 @@ export interface SupabaseConfig {
   anonKey: string;
 }
 
-interface SupabaseAuthSession {
+export interface SupabaseAuthSession {
   access_token: string;
   refresh_token: string;
   token_type: string;
@@ -92,7 +92,7 @@ export async function signOut() {
   clearStoredSession();
 }
 
-async function ensureUserProfile(session: SupabaseAuthSession) {
+export async function ensureUserProfile(session: SupabaseAuthSession) {
   const config = getSupabaseConfig();
   if (!config) return;
 
