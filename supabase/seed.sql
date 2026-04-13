@@ -1,5 +1,5 @@
-insert into users (id, company_name)
-values ('11111111-1111-1111-1111-111111111111', 'N&J Intérieurs')
+insert into users (id, auth_user_id, company_name)
+values ('11111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'N&J Intérieurs')
 on conflict do nothing;
 
 insert into clients (id, owner_id, first_name, last_name, phone, email, address, notes)
@@ -18,4 +18,9 @@ insert into tasks (owner_id, project_id, title, due_date, priority, status)
 values
 ('11111111-1111-1111-1111-111111111111','33333333-3333-3333-3333-333333333331','Planifier réunion artisan plomberie','2026-04-14','haute','todo'),
 ('11111111-1111-1111-1111-111111111111','33333333-3333-3333-3333-333333333332','Envoyer relance acompte','2026-04-13','critique','en_cours')
+on conflict do nothing;
+
+insert into service_tickets (owner_id, project_id, client_id, title, due_date, priority, status)
+values
+('11111111-1111-1111-1111-111111111111','33333333-3333-3333-3333-333333333331','22222222-2222-2222-2222-222222222221','Réglage porte placard','2026-04-20','moyenne','ouvert')
 on conflict do nothing;
