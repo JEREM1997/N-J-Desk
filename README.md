@@ -45,7 +45,7 @@ Ouvrir `http://localhost:3000`.
 3. Renseignez **obligatoirement** :
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-4. Exécutez `supabase/schema.sql` puis `supabase/seed.sql` dans SQL Editor.
+4. Exécutez `supabase/schema.sql`, puis `supabase/seed.sql`, puis `supabase/rls.sql` dans SQL Editor.
 5. Créez un bucket Storage (ex: `project-files`) pour documents/photos.
 
 Exemple :
@@ -63,6 +63,12 @@ Ajoutez les mêmes variables dans **Vercel > Project Settings > Environment Vari
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 Si elles ne sont pas définies, l'authentification ne peut pas fonctionner.
+
+## Playbook d'intégration Supabase
+
+L'ordre recommandé d'implémentation est documenté ici :
+
+- `docs/supabase-integration-playbook.md`
 
 ## Schéma base de données
 
