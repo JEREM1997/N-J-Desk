@@ -70,8 +70,17 @@ export default function ProjectsPage() {
 
   const handleCreateProject = async () => {
     if (!draft.title.trim() || !draft.address.trim() || !draft.clientId) return;
+    const selectedClient = clients.find((entry) => entry.id === draft.clientId);
+    const normalizedSiteAddress = draft.address.trim().toLowerCase();
+    const normalizedClientAddress = selectedClient?.address.trim().toLowerCase() ?? '';
+
+    if (selectedClient && normalizedClientAddress && normalizedSiteAddress === normalizedClientAddress) {
+      setError('L’adresse du chantier doit être différente de l’adresse client.');
+      return;
+    }
 
     try {
+      setError(null);
       const created = await createProject({
         title: draft.title.trim(),
         address: draft.address.trim(),
@@ -185,6 +194,7 @@ export default function ProjectsPage() {
                   <p>Client : {client?.firstName} {client?.lastName}</p>
                   <p>Téléphone : {client?.phone ?? 'Non renseigné'}</p>
                   <p>Code postal : {client?.postalCode ?? 'Non renseigné'}</p>
+                  <p>Adresse client : {client?.address || 'Non renseigné'}</p>
                   <p>Début : {project.startDate}</p>
                 </div>
 
