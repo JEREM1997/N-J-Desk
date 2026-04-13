@@ -19,21 +19,13 @@ const statusLabel: Record<ProjectStatus, string> = {
   sav: 'SAV'
 };
 
-function formatCurrency(value: number) {
+const formatProjectCurrency = (value: number) => {
   return new Intl.NumberFormat('fr-CH', {
     style: 'currency',
     currency: 'CHF',
     maximumFractionDigits: 0
   }).format(value || 0);
-}
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat('fr-CH', {
-    style: 'currency',
-    currency: 'CHF',
-    maximumFractionDigits: 0
-  }).format(value || 0);
-}
+};
 
 export default function ProjectsPage() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -198,12 +190,12 @@ export default function ProjectsPage() {
                 </div>
 
                 <div className="grid gap-3 rounded-xl border border-emerald-100 bg-emerald-50/40 p-3 text-sm md:grid-cols-2 lg:grid-cols-3">
-                  <p>Montant devis : <span className="font-semibold text-foreground">{formatCurrency(project.quoteAmount)}</span></p>
-                  <p>Montant facturé : <span className="font-semibold text-foreground">{formatCurrency(project.billedAmount)}</span></p>
-                  <p>Acompte encaissé : <span className="font-semibold text-foreground">{formatCurrency(project.depositReceived)}</span></p>
-                  <p>Solde encaissé : <span className="font-semibold text-foreground">{formatCurrency(project.balanceReceived)}</span></p>
-                  <p>Reste à facturer : <span className="font-semibold text-amber-700">{formatCurrency(remainingToBill)}</span></p>
-                  <p>Reste à encaisser : <span className="font-semibold text-rose-700">{formatCurrency(remainingToCollect)}</span></p>
+                  <p>Montant devis : <span className="font-semibold text-foreground">{formatProjectCurrency(project.quoteAmount)}</span></p>
+                  <p>Montant facturé : <span className="font-semibold text-foreground">{formatProjectCurrency(project.billedAmount)}</span></p>
+                  <p>Acompte encaissé : <span className="font-semibold text-foreground">{formatProjectCurrency(project.depositReceived)}</span></p>
+                  <p>Solde encaissé : <span className="font-semibold text-foreground">{formatProjectCurrency(project.balanceReceived)}</span></p>
+                  <p>Reste à facturer : <span className="font-semibold text-amber-700">{formatProjectCurrency(remainingToBill)}</span></p>
+                  <p>Reste à encaisser : <span className="font-semibold text-rose-700">{formatProjectCurrency(remainingToCollect)}</span></p>
                 </div>
 
                 {isEditing && (
