@@ -27,6 +27,14 @@ function formatCurrency(value: number) {
   }).format(value || 0);
 }
 
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat('fr-CH', {
+    style: 'currency',
+    currency: 'CHF',
+    maximumFractionDigits: 0
+  }).format(value || 0);
+}
+
 export default function ProjectsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [projectItems, setProjectItems] = useState<Project[]>([]);
