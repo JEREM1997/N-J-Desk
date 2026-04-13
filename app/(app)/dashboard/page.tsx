@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { listActivityLogs } from '@/lib/repositories/activity-logs';
 import { listProjects } from '@/lib/repositories/projects';
 import { listTasks } from '@/lib/repositories/tasks';
@@ -12,6 +13,7 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activityLogs, setActivityLogs] = useState<{ id: string; message: string }[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
@@ -19,6 +21,7 @@ export default function DashboardPage() {
       setProjects(projectRows);
       setTasks(taskRows);
       setActivityLogs(logs.map((log) => ({ id: log.id, message: log.message })));
+      setLoading(false);
     };
 
     void load();
@@ -33,7 +36,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <section className="space-y-7 animate-fadeIn">
+    <section className="page-wrap">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">N&J Desk</p>
@@ -45,11 +48,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {kpis.map((kpi) => (
           <Card key={kpi.label} className="premium-hover space-y-2 p-5">
             <p className="text-[11px] uppercase tracking-[0.1em] text-muted">{kpi.label}</p>
-            <p className="text-3xl font-semibold tracking-tight">{kpi.value}</p>
+            {loading ? <Skeleton className="h-8 w-14" /> : <p className="text-3xl font-semibold tracking-tight">{kpi.value}</p>}
           </Card>
         ))}
       </div>
@@ -60,11 +63,13 @@ export default function DashboardPage() {
             <h2 className="text-sm font-semibold">Activité récente</h2>
           </div>
           <ul className="mt-4 space-y-3 text-sm text-muted">
-            {activityLogs.map((log) => (
-              <li key={log.id} className="premium-hover rounded-xl border border-black/[0.04] bg-black/[0.02] px-3 py-2.5">
-                {log.message}
-              </li>
-            ))}
+            {loading
+              ? Array.from({ length: 5 }).map((_, index) => <Skeleton key={index} className="h-10 w-full" />)
+              : activityLogs.map((log) => (
+                  <li key={log.id} className="premium-hover rounded-xl border border-black/[0.04] bg-black/[0.02] px-3 py-2.5">
+                    {log.message}
+                  </li>
+                ))}
           </ul>
         </Card>
 
@@ -73,15 +78,17 @@ export default function DashboardPage() {
             <h2 className="text-sm font-semibold">Tâches prioritaires</h2>
           </div>
           <ul className="mt-4 space-y-3">
-            {tasks.slice(0, 8).map((task) => (
-              <li key={task.id} className="premium-hover flex items-center justify-between rounded-xl border border-black/[0.05] px-3 py-2.5">
-                <div>
-                  <p className="text-sm font-medium">{task.title}</p>
-                  <p className="text-xs text-muted">Échéance {task.dueDate}</p>
-                </div>
-                <Badge tone={task.priority === 'critique' ? 'warning' : 'muted'}>{task.priority}</Badge>
-              </li>
-            ))}
+            {loading
+              ? Array.from({ length: 5 }).map((_, index) => <Skeleton key={index} className="h-12 w-full" />)
+              : tasks.slice(0, 8).map((task) => (
+                  <li key={task.id} className="premium-hover flex items-center justify-between rounded-xl border border-black/[0.05] px-3 py-2.5">
+                    <div>
+                      <p className="text-sm font-medium">{task.title}</p>
+                      <p className="text-xs text-muted">Échéance {task.dueDate}</p>
+                    </div>
+                    <Badge tone={task.priority === 'critique' ? 'warning' : 'muted'}>{task.priority}</Badge>
+                  </li>
+                ))}
           </ul>
         </Card>
       </div>
