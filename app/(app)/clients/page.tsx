@@ -1,10 +1,12 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { clients as initialClients, projects } from '@/lib/mock-data';
 import { Client } from '@/lib/types';
+import { appendActivityLog, getStoredClients, getStoredProjects, setStoredClients } from '@/lib/data-store';
+import { usePersistentState } from '@/lib/use-persistent-state';
 
 const emptyClientDraft = {
   firstName: '',
@@ -17,7 +19,8 @@ const emptyClientDraft = {
 };
 
 export default function ClientsPage() {
-  const [clientItems, setClientItems] = useState<Client[]>(initialClients);
+  const { value: clientItems, setValue: setClientItems, hydrated } = usePersistentState(getStoredClients, setStoredClients);
+  const { value: projectItems } = usePersistentState(getStoredProjects, () => undefined);
   const [search, setSearch] = useState('');
   const [draft, setDraft] = useState(emptyClientDraft);
 
@@ -45,6 +48,7 @@ export default function ClientsPage() {
     };
 
     setClientItems((current) => [newClient, ...current]);
+    appendActivityLog(`Nouveau client créé : ${newClient.firstName} ${newClient.lastName}.`);
     setDraft(emptyClientDraft);
   };
 
@@ -74,28 +78,34 @@ export default function ClientsPage() {
       </Card>
 
       <Card className="overflow-hidden p-0">
-        <table className="w-full text-sm">
-          <thead className="table-head">
-            <tr>
-              <th className="px-4 py-3">Nom</th>
-              <th className="px-4 py-3">Email</th>
-              <th className="px-4 py-3">Téléphone</th>
-              <th className="px-4 py-3">Chantiers liés</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredClients.map((client) => (
-              <tr key={client.id} className="border-t border-black/[0.04] transition-colors hover:bg-black/[0.02]">
-                <td className="px-4 py-3.5 font-medium">
-                  {client.firstName} {client.lastName}
-                </td>
-                <td className="px-4 py-3.5 text-muted">{client.email || 'Non renseigné'}</td>
-                <td className="px-4 py-3.5 text-muted">{client.phone || 'Non renseigné'}</td>
-                <td className="px-4 py-3.5">{projects.filter((project) => project.clientId === client.id).length}</td>
+        {!hydrated ? (
+          <p className="px-4 py-4 text-sm text-muted">Chargement des clients…</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="table-head">
+              <tr>
+                <th className="px-4 py-3">Nom</th>
+                <th className="px-4 py-3">Email</th>
+                <th className="px-4 py-3">Téléphone</th>
+                <th className="px-4 py-3">Chantiers liés</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredClients.map((client) => (
+                <tr key={client.id} className="border-t border-black/[0.04] transition-colors hover:bg-black/[0.02]">
+                  <td className="px-4 py-3.5 font-medium">
+                    <Link className="hover:underline" href={`/clients/${client.id}`}>
+                      {client.firstName} {client.lastName}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3.5 text-muted">{client.email || 'Non renseigné'}</td>
+                  <td className="px-4 py-3.5 text-muted">{client.phone || 'Non renseigné'}</td>
+                  <td className="px-4 py-3.5">{projectItems.filter((project) => project.clientId === client.id).length}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </Card>
     </section>
   );
