@@ -7,11 +7,18 @@ export function BrandLogo({ compact = false }: { compact?: boolean }) {
     <Link href="/dashboard" className="group inline-flex items-center gap-3">
       <div
         className={cn(
-          'relative overflow-hidden rounded-2xl border border-black/10 bg-white shadow-panel transition-transform duration-300 group-hover:-translate-y-0.5',
+          'relative flex items-center justify-center overflow-hidden rounded-2xl border border-black/10 bg-white p-1.5 shadow-panel transition-transform duration-300 group-hover:-translate-y-0.5',
           compact ? 'h-10 w-10' : 'h-11 w-11'
         )}
       >
-        <Image src="/branding/nj-signature.svg" alt="N&J Intérieurs" fill className="object-cover object-left" priority />
+        <Image
+          src="/branding/nj-signature.svg"
+          alt="N&J Intérieurs"
+          width={64}
+          height={64}
+          className="object-contain object-center"
+          priority
+        />
       </div>
       {!compact && (
         <div className="space-y-0.5">

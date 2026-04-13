@@ -39,6 +39,8 @@ export default function ProjectsPage() {
 
               <div className="grid gap-3 rounded-xl border border-black/[0.04] bg-black/[0.015] p-3 text-sm text-muted md:grid-cols-2 lg:grid-cols-4">
                 <p>Client : {client?.firstName} {client?.lastName}</p>
+                <p>Téléphone : {client?.phone ?? 'Non renseigné'}</p>
+                <p>Code postal : {client?.postalCode ?? 'Non renseigné'}</p>
                 <p>Début : {project.startDate}</p>
                 <p>Fin estimée : {project.estimatedEndDate}</p>
                 <p>Devis : {project.quoteAmount.toLocaleString('fr-FR')} €</p>

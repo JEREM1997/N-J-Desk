@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
@@ -15,12 +14,7 @@ export default function LoginPage() {
         <input className="w-full" type="password" placeholder="Mot de passe" />
         <Button className="w-full">Se connecter</Button>
       </form>
-      <p className="text-center text-sm text-muted">
-        Pas encore de compte ?{' '}
-        <Link href="/signup" className="font-medium text-foreground underline-offset-4 transition hover:underline">
-          Inscription
-        </Link>
-      </p>
+      <p className="text-center text-sm text-muted">Création de comptes gérée depuis les paramètres administrateur.</p>
     </Card>
   );
 }
