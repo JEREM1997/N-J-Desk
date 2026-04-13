@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: 'Pilotage premium de chantiers et suivi client pour N&J Intérieurs',
   manifest: '/manifest.webmanifest',
   icons: {
-    icon: '/branding/favicon.svg'
+    icon: '/branding/LOGO%20N%26J.jpg'
   },
   appleWebApp: {
     capable: true,
