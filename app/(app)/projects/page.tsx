@@ -110,7 +110,7 @@ export default function ProjectsPage() {
     }
   };
 
-  const updateProjectField = async <K extends keyof Project>(id: string, field: K, value: Project[K]) => {
+  const handleProjectFieldChange = async <K extends keyof Project>(id: string, field: K, value: Project[K]) => {
     setProjectItems((current) => current.map((project) => (project.id === id ? { ...project, [field]: value } : project)));
 
     try {
@@ -119,12 +119,6 @@ export default function ProjectsPage() {
     } catch {
       await loadData();
     }
-  };
-
-  const updateProjectField = <K extends keyof Project>(id: string, field: K, value: Project[K]) => {
-    setProjectItems((current) =>
-      current.map((project) => (project.id === id ? { ...project, [field]: value } : project))
-    );
   };
 
   return (
@@ -205,13 +199,13 @@ export default function ProjectsPage() {
 
                 {isEditing && (
                   <div className="grid gap-2 rounded-xl border border-black/[0.06] bg-white p-3 md:grid-cols-2 lg:grid-cols-3">
-                    <input type="number" min={0} value={project.quoteAmount} onChange={(event) => void updateProjectField(project.id, 'quoteAmount', Number(event.target.value) || 0)} placeholder="Montant devis" />
-                    <input type="number" min={0} value={project.billedAmount} onChange={(event) => void updateProjectField(project.id, 'billedAmount', Number(event.target.value) || 0)} placeholder="Montant facturé" />
-                    <input type="number" min={0} value={project.depositReceived} onChange={(event) => void updateProjectField(project.id, 'depositReceived', Number(event.target.value) || 0)} placeholder="Acompte encaissé" />
-                    <input type="number" min={0} value={project.balanceReceived} onChange={(event) => void updateProjectField(project.id, 'balanceReceived', Number(event.target.value) || 0)} placeholder="Solde encaissé" />
-                    <input type="date" value={project.startDate} onChange={(event) => void updateProjectField(project.id, 'startDate', event.target.value)} />
-                    <input type="date" value={project.estimatedEndDate} onChange={(event) => void updateProjectField(project.id, 'estimatedEndDate', event.target.value)} />
-                    <select value={project.status} onChange={(event) => void updateProjectField(project.id, 'status', event.target.value as ProjectStatus)}>
+                    <input type="number" min={0} value={project.quoteAmount} onChange={(event) => void handleProjectFieldChange(project.id, 'quoteAmount', Number(event.target.value) || 0)} placeholder="Montant devis" />
+                    <input type="number" min={0} value={project.billedAmount} onChange={(event) => void handleProjectFieldChange(project.id, 'billedAmount', Number(event.target.value) || 0)} placeholder="Montant facturé" />
+                    <input type="number" min={0} value={project.depositReceived} onChange={(event) => void handleProjectFieldChange(project.id, 'depositReceived', Number(event.target.value) || 0)} placeholder="Acompte encaissé" />
+                    <input type="number" min={0} value={project.balanceReceived} onChange={(event) => void handleProjectFieldChange(project.id, 'balanceReceived', Number(event.target.value) || 0)} placeholder="Solde encaissé" />
+                    <input type="date" value={project.startDate} onChange={(event) => void handleProjectFieldChange(project.id, 'startDate', event.target.value)} />
+                    <input type="date" value={project.estimatedEndDate} onChange={(event) => void handleProjectFieldChange(project.id, 'estimatedEndDate', event.target.value)} />
+                    <select value={project.status} onChange={(event) => void handleProjectFieldChange(project.id, 'status', event.target.value as ProjectStatus)}>
                       {Object.entries(statusLabel).map(([key, label]) => (
                         <option key={key} value={key}>{label}</option>
                       ))}
@@ -227,7 +221,7 @@ export default function ProjectsPage() {
 
                 <textarea
                   value={project.internalNotes}
-                  onChange={(event) => void updateProjectField(project.id, 'internalNotes', event.target.value)}
+                  onChange={(event) => void handleProjectFieldChange(project.id, 'internalNotes', event.target.value)}
                   placeholder="Notes internes"
                 />
 
