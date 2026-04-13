@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Project, ProjectStatus, Client, ProjectDocument, ProjectPhoto } from '@/lib/types';
 import { createActivityLog } from '@/lib/repositories/activity-logs';
 import { listClients } from '@/lib/repositories/clients';
@@ -133,24 +134,27 @@ export default function ProjectsPage() {
   };
 
   return (
-    <section className="space-y-6 animate-fadeIn">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+    <section className="page-wrap">
+      <div className="page-head">
         <div>
           <h1 className="luxury-title">Chantiers</h1>
           <p className="text-sm text-muted">Suivi opérationnel et financier de vos dossiers.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid w-full gap-2 md:w-auto md:grid-cols-4">
           <input
+            className="w-full"
             placeholder="Titre du chantier"
             value={draft.title}
             onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
           />
           <input
+            className="w-full"
             placeholder="Adresse du chantier"
             value={draft.address}
             onChange={(event) => setDraft((current) => ({ ...current, address: event.target.value }))}
           />
           <select
+            className="w-full"
             value={draft.clientId}
             onChange={(event) => setDraft((current) => ({ ...current, clientId: event.target.value }))}
           >
@@ -160,15 +164,17 @@ export default function ProjectsPage() {
               </option>
             ))}
           </select>
-          <Button onClick={handleCreateProject}>Nouveau chantier</Button>
+          <Button className="w-full md:w-auto" onClick={handleCreateProject}>Nouveau chantier</Button>
         </div>
       </div>
 
       {error && <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
 
       {loading ? (
-        <Card>
-          <p className="text-sm text-muted">Chargement des chantiers…</p>
+        <Card className="space-y-3">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} className="h-20 w-full" />
+          ))}
         </Card>
       ) : (
         <div className="space-y-4">

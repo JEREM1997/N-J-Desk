@@ -1,5 +1,5 @@
 import { ServiceTicket } from '@/lib/types';
-import { supabaseInsert, supabaseSelect, supabaseUpdate } from './base';
+import { supabaseDelete, supabaseInsert, supabaseSelect, supabaseUpdate } from './base';
 
 interface ServiceTicketRow {
   id: string;
@@ -44,4 +44,8 @@ export async function createServiceTicket(ticket: Omit<ServiceTicket, 'id'>) {
 export async function updateServiceTicketStatus(id: string, status: ServiceTicket['status']) {
   const row = await supabaseUpdate<ServiceTicketRow>('service_tickets', id, { status });
   return toTicket(row);
+}
+
+export async function deleteServiceTicket(id: string) {
+  await supabaseDelete('service_tickets', id);
 }

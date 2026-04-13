@@ -11,30 +11,16 @@ export default function SettingsPage() {
   };
 
   return (
-    <section className="space-y-6 animate-fadeIn">
+    <section className="page-wrap">
       <div>
         <h1 className="luxury-title">Paramètres</h1>
-        <p className="text-sm text-muted">Configuration de l&apos;espace N&J Intérieurs.</p>
+        <p className="text-sm text-muted">Gérez votre session et la sécurité de l&apos;application.</p>
       </div>
       <Card className="space-y-4">
-        <h2 className="text-sm font-semibold">Identité de la société</h2>
-        <input className="w-full" defaultValue="N&J Intérieurs" />
-        <div className="rounded-xl border border-dashed bg-black/[0.02] p-4 text-sm text-muted">
-          Logo actuel : <code>public/branding/LOGO N&J.jpg</code>
-          <input type="file" className="mt-2 block w-full text-xs" />
-        </div>
-      </Card>
-      <Card className="space-y-4">
-        <h2 className="text-sm font-semibold">Préférences générales</h2>
-        <label className="flex items-center justify-between rounded-xl border border-black/[0.06] px-3 py-2.5 text-sm">
-          Notifications email
-          <input type="checkbox" defaultChecked />
-        </label>
-        <label className="flex items-center justify-between rounded-xl border border-black/[0.06] px-3 py-2.5 text-sm">
-          Vue compacte tableaux
-          <input type="checkbox" />
-        </label>
-        <Button className="w-fit">Enregistrer</Button>
+        <h2 className="text-sm font-semibold">Session</h2>
+        <p className="text-sm text-muted">
+          Déconnectez-vous pour changer de compte ou sécuriser l&apos;accès depuis cet appareil.
+        </p>
         <Button className="w-fit border border-zinc-300 bg-zinc-100 text-zinc-800 shadow-none hover:bg-zinc-200" onClick={logout}>
           Se déconnecter
         </Button>

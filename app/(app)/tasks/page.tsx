@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Task, Client, Project } from '@/lib/types';
 import { createActivityLog } from '@/lib/repositories/activity-logs';
 import { listClients } from '@/lib/repositories/clients';
@@ -91,7 +92,7 @@ export default function TasksPage() {
   };
 
   return (
-    <section className="space-y-6 animate-fadeIn">
+    <section className="page-wrap">
       <div>
         <h1 className="luxury-title">Tâches</h1>
         <p className="text-sm text-muted">Pilotage des urgences et échéances.</p>
@@ -113,10 +114,14 @@ export default function TasksPage() {
               <option key={project.id} value={project.id}>{project.title}</option>
             ))}
           </select>
-          <Button onClick={() => void handleCreateTask()}>Créer</Button>
+          <Button className="w-full md:w-auto" onClick={() => void handleCreateTask()}>Créer</Button>
         </div>
         {loading ? (
-          <p className="text-sm text-muted">Chargement des tâches…</p>
+          <div className="space-y-2.5">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <Skeleton key={index} className="h-12 w-full" />
+            ))}
+          </div>
         ) : (
           <ul className="space-y-2.5">
             {taskItems.map((task) => {
@@ -124,7 +129,7 @@ export default function TasksPage() {
               const client = clients.find((entry) => entry.id === task.clientId);
 
               return (
-                <li key={task.id} className="premium-hover flex items-center justify-between rounded-xl border border-black/[0.05] px-3 py-2.5">
+                <li key={task.id} className="premium-hover flex flex-col items-start justify-between gap-3 rounded-xl border border-black/[0.05] px-3 py-2.5 sm:flex-row sm:items-center">
                   <div>
                     <p className="text-sm font-medium">{task.title}</p>
                     <p className="text-xs text-muted">
@@ -133,7 +138,7 @@ export default function TasksPage() {
                       {client ? ` · Client ${client.firstName} ${client.lastName}` : ''}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
                     <Badge tone={task.priority === 'critique' ? 'warning' : 'muted'}>{task.priority}</Badge>
                     <Button className="px-3 py-1.5 text-xs" onClick={() => void handleToggleStatus(task)}>
                       {task.status === 'done' ? 'Rouvrir' : 'Terminer'}

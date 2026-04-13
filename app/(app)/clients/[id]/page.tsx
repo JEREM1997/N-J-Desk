@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Client, Project } from '@/lib/types';
 import { listClients } from '@/lib/repositories/clients';
 import { listProjects } from '@/lib/repositories/projects';
@@ -30,9 +31,13 @@ export default function ClientDetailPage() {
 
   if (loading) {
     return (
-      <section className="space-y-6 animate-fadeIn">
+      <section className="page-wrap">
         <Card>
-          <p className="text-sm text-muted">Chargement du client…</p>
+          <div className="space-y-3">
+            <Skeleton className="h-6 w-52" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
         </Card>
       </section>
     );
@@ -40,7 +45,7 @@ export default function ClientDetailPage() {
 
   if (!client) {
     return (
-      <section className="space-y-6 animate-fadeIn">
+      <section className="page-wrap">
         <Card>
           <h1 className="text-lg font-semibold">Client introuvable</h1>
           <p className="mt-1 text-sm text-muted">Ce client n&apos;existe pas ou n&apos;est plus disponible.</p>
@@ -50,7 +55,7 @@ export default function ClientDetailPage() {
   }
 
   return (
-    <section className="space-y-6 animate-fadeIn">
+    <section className="page-wrap">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
           {client.firstName} {client.lastName}
