@@ -36,14 +36,19 @@ function toProject(row: ProjectRow): Project {
 }
 
 function toRow(project: Partial<Project>) {
+  const nullableDate = (value: string | undefined) => {
+    const normalized = value?.trim();
+    return normalized ? normalized : null;
+  };
+
   return {
     client_id: project.clientId,
     title: project.title,
     site_address: project.address,
     description: project.description,
     status: project.status,
-    start_date: project.startDate,
-    estimated_end_date: project.estimatedEndDate,
+    start_date: nullableDate(project.startDate),
+    estimated_end_date: nullableDate(project.estimatedEndDate),
     quote_amount: project.quoteAmount,
     billed_amount: project.billedAmount,
     deposit_received: project.depositReceived,
