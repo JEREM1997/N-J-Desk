@@ -41,20 +41,22 @@ function toRow(project: Partial<Project>) {
     return normalized ? normalized : null;
   };
 
-  return {
-    client_id: project.clientId,
-    title: project.title,
-    site_address: project.address,
-    description: project.description,
-    status: project.status,
-    start_date: nullableDate(project.startDate),
-    estimated_end_date: nullableDate(project.estimatedEndDate),
-    quote_amount: project.quoteAmount,
-    billed_amount: project.billedAmount,
-    deposit_received: project.depositReceived,
-    balance_received: project.balanceReceived,
-    internal_notes: project.internalNotes
-  };
+  const row: Record<string, unknown> = {};
+
+  if ('clientId' in project) row.client_id = project.clientId;
+  if ('title' in project) row.title = project.title;
+  if ('address' in project) row.site_address = project.address;
+  if ('description' in project) row.description = project.description;
+  if ('status' in project) row.status = project.status;
+  if ('startDate' in project) row.start_date = nullableDate(project.startDate);
+  if ('estimatedEndDate' in project) row.estimated_end_date = nullableDate(project.estimatedEndDate);
+  if ('quoteAmount' in project) row.quote_amount = project.quoteAmount;
+  if ('billedAmount' in project) row.billed_amount = project.billedAmount;
+  if ('depositReceived' in project) row.deposit_received = project.depositReceived;
+  if ('balanceReceived' in project) row.balance_received = project.balanceReceived;
+  if ('internalNotes' in project) row.internal_notes = project.internalNotes;
+
+  return row;
 }
 
 export async function listProjects() {

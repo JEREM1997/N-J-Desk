@@ -12,9 +12,9 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: 'fr',
     icons: [
       {
-        src: '/branding/favicon.svg',
-        sizes: 'any',
-        type: 'image/svg+xml'
+        src: '/branding/LOGO%20N%26J.jpg',
+        sizes: '512x512',
+        type: 'image/jpeg'
       }
     ]
   };

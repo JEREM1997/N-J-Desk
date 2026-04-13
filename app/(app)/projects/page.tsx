@@ -120,12 +120,14 @@ export default function ProjectsPage() {
   };
 
   const handleProjectFieldChange = async <K extends keyof Project>(id: string, field: K, value: Project[K]) => {
+    setError(null);
     setProjectItems((current) => current.map((project) => (project.id === id ? { ...project, [field]: value } : project)));
 
     try {
       const updated = await updateProject(id, { [field]: value } as Partial<Omit<Project, 'id'>>);
       setProjectItems((current) => current.map((project) => (project.id === id ? updated : project)));
-    } catch {
+    } catch (updateError) {
+      setError(updateError instanceof Error ? updateError.message : 'Modification impossible');
       await loadData();
     }
   };
@@ -270,11 +272,17 @@ export default function ProjectsPage() {
                   </p>
                 )}
 
-                <textarea
-                  value={project.internalNotes}
-                  onChange={(event) => void handleProjectFieldChange(project.id, 'internalNotes', event.target.value)}
-                  placeholder="Notes internes"
-                />
+                {isEditing ? (
+                  <textarea
+                    value={project.internalNotes}
+                    onChange={(event) => void handleProjectFieldChange(project.id, 'internalNotes', event.target.value)}
+                    placeholder="Notes internes"
+                  />
+                ) : (
+                  <p className="rounded-xl border border-black/[0.06] bg-white p-3 text-sm text-muted">
+                    {project.internalNotes?.trim() || 'Aucune note interne'}
+                  </p>
+                )}
 
                 <div className="flex gap-2">
                   <Button className="bg-zinc-900" onClick={() => setEditingProjectId(isEditing ? null : project.id)}>
