@@ -16,8 +16,8 @@ import { usePersistentState } from '@/lib/use-persistent-state';
 
 export default function TasksPage() {
   const { value: taskItems, setValue: setTaskItems, hydrated } = usePersistentState(getStoredTasks, setStoredTasks);
-  const { value: clients } = usePersistentState(getStoredClients, () => undefined);
-  const { value: projects } = usePersistentState(getStoredProjects, () => undefined);
+  const { value: clients } = usePersistentState(getStoredClients);
+  const { value: projects } = usePersistentState(getStoredProjects);
   const [title, setTitle] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState<Task['priority']>('moyenne');

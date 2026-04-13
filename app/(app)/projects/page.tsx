@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,8 +23,16 @@ function getCityFromAddress(address: string) {
   return chunks[chunks.length - 1] ?? '';
 }
 
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat('fr-CH', {
+    style: 'currency',
+    currency: 'CHF',
+    maximumFractionDigits: 0
+  }).format(value || 0);
+}
+
 export default function ProjectsPage() {
-  const { value: clients } = usePersistentState(getStoredClients, () => undefined);
+  const { value: clients } = usePersistentState(getStoredClients);
   const { value: projectItems, setValue: setProjectItems, hydrated } = usePersistentState(getStoredProjects, setStoredProjects);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [draft, setDraft] = useState({
@@ -33,6 +41,12 @@ export default function ProjectsPage() {
     clientId: clients[0]?.id ?? '',
     status: 'prospect' as ProjectStatus
   });
+
+  useEffect(() => {
+    if (!draft.clientId && clients.length > 0) {
+      setDraft((current) => ({ ...current, clientId: clients[0].id }));
+    }
+  }, [clients, draft.clientId]);
 
   const sortedProjects = useMemo(
     () => [...projectItems].sort((a, b) => a.startDate.localeCompare(b.startDate) * -1),
@@ -73,6 +87,12 @@ export default function ProjectsPage() {
   const updateProjectNote = (id: string, note: string) => {
     setProjectItems((current) =>
       current.map((project) => (project.id === id ? { ...project, internalNotes: note } : project))
+    );
+  };
+
+  const updateProjectField = <K extends keyof Project>(id: string, field: K, value: Project[K]) => {
+    setProjectItems((current) =>
+      current.map((project) => (project.id === id ? { ...project, [field]: value } : project))
     );
   };
 
@@ -118,6 +138,8 @@ export default function ProjectsPage() {
             const client = clients.find((entry) => entry.id === project.clientId);
             const city = getCityFromAddress(project.address);
             const isEditing = editingProjectId === project.id;
+            const remainingToBill = Math.max(project.quoteAmount - project.billedAmount, 0);
+            const remainingToCollect = Math.max(project.quoteAmount - project.balanceReceived, 0);
 
             return (
               <Card key={project.id} className="space-y-4 premium-hover">
@@ -138,6 +160,74 @@ export default function ProjectsPage() {
                   <p>Code postal : {client?.postalCode ?? 'Non renseigné'}</p>
                   <p>Début : {project.startDate}</p>
                 </div>
+
+                <div className="grid gap-3 rounded-xl border border-emerald-100 bg-emerald-50/40 p-3 text-sm md:grid-cols-2 lg:grid-cols-3">
+                  <p>Montant devis : <span className="font-semibold text-foreground">{formatCurrency(project.quoteAmount)}</span></p>
+                  <p>Montant facturé : <span className="font-semibold text-foreground">{formatCurrency(project.billedAmount)}</span></p>
+                  <p>Acompte encaissé : <span className="font-semibold text-foreground">{formatCurrency(project.depositReceived)}</span></p>
+                  <p>Solde encaissé : <span className="font-semibold text-foreground">{formatCurrency(project.balanceReceived)}</span></p>
+                  <p>Reste à facturer : <span className="font-semibold text-amber-700">{formatCurrency(remainingToBill)}</span></p>
+                  <p>Reste à encaisser : <span className="font-semibold text-rose-700">{formatCurrency(remainingToCollect)}</span></p>
+                </div>
+
+                {isEditing && (
+                  <div className="grid gap-2 rounded-xl border border-black/[0.06] bg-white p-3 md:grid-cols-2 lg:grid-cols-3">
+                    <input
+                      type="number"
+                      min={0}
+                      value={project.quoteAmount}
+                      onChange={(event) => updateProjectField(project.id, 'quoteAmount', Number(event.target.value) || 0)}
+                      placeholder="Montant devis"
+                    />
+                    <input
+                      type="number"
+                      min={0}
+                      value={project.billedAmount}
+                      onChange={(event) => updateProjectField(project.id, 'billedAmount', Number(event.target.value) || 0)}
+                      placeholder="Montant facturé"
+                    />
+                    <input
+                      type="number"
+                      min={0}
+                      value={project.depositReceived}
+                      onChange={(event) => updateProjectField(project.id, 'depositReceived', Number(event.target.value) || 0)}
+                      placeholder="Acompte encaissé"
+                    />
+                    <input
+                      type="number"
+                      min={0}
+                      value={project.balanceReceived}
+                      onChange={(event) => updateProjectField(project.id, 'balanceReceived', Number(event.target.value) || 0)}
+                      placeholder="Solde encaissé"
+                    />
+                    <input
+                      type="date"
+                      value={project.startDate}
+                      onChange={(event) => updateProjectField(project.id, 'startDate', event.target.value)}
+                    />
+                    <input
+                      type="date"
+                      value={project.estimatedEndDate}
+                      onChange={(event) => updateProjectField(project.id, 'estimatedEndDate', event.target.value)}
+                    />
+                    <select
+                      value={project.status}
+                      onChange={(event) => updateProjectField(project.id, 'status', event.target.value as ProjectStatus)}
+                    >
+                      {Object.entries(statusLabel).map(([key, label]) => (
+                        <option key={key} value={key}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {project.balanceReceived > project.quoteAmount && (
+                  <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                    Attention : les encaissements dépassent le montant devis.
+                  </p>
+                )}
 
                 <textarea
                   value={project.internalNotes}

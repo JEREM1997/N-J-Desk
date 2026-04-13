@@ -20,7 +20,7 @@ const emptyClientDraft = {
 
 export default function ClientsPage() {
   const { value: clientItems, setValue: setClientItems, hydrated } = usePersistentState(getStoredClients, setStoredClients);
-  const { value: projectItems } = usePersistentState(getStoredProjects, () => undefined);
+  const { value: projectItems } = usePersistentState(getStoredProjects);
   const [search, setSearch] = useState('');
   const [draft, setDraft] = useState(emptyClientDraft);
 

@@ -1,0 +1,83 @@
+import { getStoredSession, getSupabaseConfig } from '@/lib/supabase';
+
+function getAuthHeaders() {
+  const config = getSupabaseConfig();
+  if (!config) {
+    throw new Error('Configuration Supabase manquante');
+  }
+
+  const session = getStoredSession();
+
+  return {
+    config,
+    headers: {
+      apikey: config.anonKey,
+      Authorization: `Bearer ${session?.access_token ?? config.anonKey}`,
+      'Content-Type': 'application/json'
+    }
+  };
+}
+
+export async function supabaseSelect<T>(table: string, query: string) {
+  const { config, headers } = getAuthHeaders();
+  const response = await fetch(`${config.url}/rest/v1/${table}?${query}`, {
+    method: 'GET',
+    headers
+  });
+
+  if (!response.ok) {
+    throw new Error(`Erreur lecture ${table}`);
+  }
+
+  return (await response.json()) as T[];
+}
+
+export async function supabaseInsert<T>(table: string, payload: Record<string, unknown>) {
+  const { config, headers } = getAuthHeaders();
+  const response = await fetch(`${config.url}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: {
+      ...headers,
+      Prefer: 'return=representation'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    throw new Error(`Erreur création ${table}`);
+  }
+
+  const rows = (await response.json()) as T[];
+  return rows[0] as T;
+}
+
+export async function supabaseUpdate<T>(table: string, id: string, payload: Record<string, unknown>) {
+  const { config, headers } = getAuthHeaders();
+  const response = await fetch(`${config.url}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: {
+      ...headers,
+      Prefer: 'return=representation'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    throw new Error(`Erreur modification ${table}`);
+  }
+
+  const rows = (await response.json()) as T[];
+  return rows[0] as T;
+}
+
+export async function supabaseDelete(table: string, id: string) {
+  const { config, headers } = getAuthHeaders();
+  const response = await fetch(`${config.url}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'DELETE',
+    headers
+  });
+
+  if (!response.ok) {
+    throw new Error(`Erreur suppression ${table}`);
+  }
+}

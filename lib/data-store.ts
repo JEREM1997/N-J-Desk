@@ -1,11 +1,14 @@
-import { activityLogs, clients, projects, tasks } from '@/lib/mock-data';
-import type { Client, Project, Task } from '@/lib/types';
+import { activityLogs, clients, projectDocuments, projectPhotos, projects, serviceTickets, tasks } from '@/lib/mock-data';
+import type { Client, Project, ProjectDocument, ProjectPhoto, ServiceTicket, Task } from '@/lib/types';
 
 const STORAGE_KEYS = {
   clients: 'njdesk.clients',
   projects: 'njdesk.projects',
   tasks: 'njdesk.tasks',
-  activityLogs: 'njdesk.activityLogs'
+  activityLogs: 'njdesk.activityLogs',
+  documents: 'njdesk.documents',
+  photos: 'njdesk.photos',
+  serviceTickets: 'njdesk.serviceTickets'
 } as const;
 
 function canUseStorage() {
@@ -62,4 +65,28 @@ export function appendActivityLog(message: string) {
   const current = getStoredActivityLogs();
   const next = [message, ...current].slice(0, 30);
   writeToStorage(STORAGE_KEYS.activityLogs, next);
+}
+
+export function getStoredDocuments() {
+  return readFromStorage<ProjectDocument[]>(STORAGE_KEYS.documents, projectDocuments);
+}
+
+export function setStoredDocuments(value: ProjectDocument[]) {
+  writeToStorage(STORAGE_KEYS.documents, value);
+}
+
+export function getStoredPhotos() {
+  return readFromStorage<ProjectPhoto[]>(STORAGE_KEYS.photos, projectPhotos);
+}
+
+export function setStoredPhotos(value: ProjectPhoto[]) {
+  writeToStorage(STORAGE_KEYS.photos, value);
+}
+
+export function getStoredServiceTickets() {
+  return readFromStorage<ServiceTicket[]>(STORAGE_KEYS.serviceTickets, serviceTickets);
+}
+
+export function setStoredServiceTickets(value: ServiceTicket[]) {
+  writeToStorage(STORAGE_KEYS.serviceTickets, value);
 }

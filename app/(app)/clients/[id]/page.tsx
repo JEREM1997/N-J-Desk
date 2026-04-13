@@ -9,8 +9,8 @@ import { usePersistentState } from '@/lib/use-persistent-state';
 export default function ClientDetailPage() {
   const params = useParams<{ id: string }>();
   const clientId = params.id;
-  const { value: clients } = usePersistentState(getStoredClients, () => undefined);
-  const { value: projects } = usePersistentState(getStoredProjects, () => undefined);
+  const { value: clients } = usePersistentState(getStoredClients);
+  const { value: projects } = usePersistentState(getStoredProjects);
 
   const client = useMemo(() => clients.find((entry) => entry.id === clientId), [clients, clientId]);
   const linkedProjects = useMemo(() => projects.filter((project) => project.clientId === clientId), [projects, clientId]);

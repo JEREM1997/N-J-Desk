@@ -6,9 +6,9 @@ import { getStoredActivityLogs, getStoredProjects, getStoredTasks } from '@/lib/
 import { usePersistentState } from '@/lib/use-persistent-state';
 
 export default function DashboardPage() {
-  const { value: projects } = usePersistentState(getStoredProjects, () => undefined);
-  const { value: tasks } = usePersistentState(getStoredTasks, () => undefined);
-  const { value: activityLogs } = usePersistentState(getStoredActivityLogs, () => undefined);
+  const { value: projects } = usePersistentState(getStoredProjects);
+  const { value: tasks } = usePersistentState(getStoredTasks);
+  const { value: activityLogs } = usePersistentState(getStoredActivityLogs);
 
   const kpis = [
     { label: 'Prospects', value: projects.filter((project) => project.status === 'prospect').length.toString() },
