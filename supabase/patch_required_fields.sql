@@ -26,7 +26,12 @@ as $$
   limit 1
 $$;
 
-create type if not exists service_ticket_status as enum ('ouvert','planifie','resolu');
+do $$
+begin
+  create type service_ticket_status as enum ('ouvert','planifie','resolu');
+exception
+  when duplicate_object then null;
+end $$;
 
 create table if not exists service_tickets (
   id uuid primary key default gen_random_uuid(),
