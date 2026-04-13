@@ -2,11 +2,13 @@
 
 import type { Route } from 'next';
 import type { ComponentType } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Users, Hammer, CheckSquare, Wallet, FolderOpen, Wrench, Settings } from 'lucide-react';
 import { BrandLogo } from './brand-logo';
 import { cn } from '@/lib/utils';
+import { getStoredSession } from '@/lib/supabase';
 
 const links: { href: Route; label: string; icon: ComponentType<{ className?: string }> }[] = [
   { href: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
@@ -21,6 +23,21 @@ const links: { href: Route; label: string; icon: ComponentType<{ className?: str
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [currentUser, setCurrentUser] = useState<string>('Utilisateur connecté');
+
+  useEffect(() => {
+    const session = getStoredSession();
+    const email = session?.user.email?.trim();
+    if (email) {
+      setCurrentUser(email);
+      return;
+    }
+
+    const shortId = session?.user.id?.slice(0, 8);
+    if (shortId) {
+      setCurrentUser(`Utilisateur #${shortId}`);
+    }
+  }, []);
 
   return (
     <aside className="relative hidden w-72 shrink-0 border-r border-white/60 bg-gradient-to-b from-zinc-950 to-zinc-900 px-5 py-6 text-zinc-100 shadow-2xl md:block">
@@ -47,6 +64,10 @@ export function Sidebar() {
             );
           })}
         </nav>
+        <div className="mt-8 rounded-xl border border-white/15 bg-white/5 px-3 py-2">
+          <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-400">Connecté en tant que</p>
+          <p className="mt-1 truncate text-sm font-medium text-zinc-100">{currentUser}</p>
+        </div>
       </div>
     </aside>
   );
