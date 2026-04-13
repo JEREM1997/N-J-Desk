@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { listProjects } from '@/lib/repositories/projects';
 import { createDocumentWithFile, createPhotoWithFile, deleteDocument, deletePhoto, listDocuments, listPhotos } from '@/lib/repositories/documents';
 import { ProjectDocument, ProjectPhoto, Project } from '@/lib/types';
@@ -12,6 +13,7 @@ export default function DocumentsPage() {
   const [documents, setDocuments] = useState<ProjectDocument[]>([]);
   const [photos, setPhotos] = useState<ProjectPhoto[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const [documentDraft, setDocumentDraft] = useState({
     file: null as File | null,
@@ -32,6 +34,8 @@ export default function DocumentsPage() {
         setPhotoDraft((current) => ({ ...current, projectId: current.projectId || projectRows[0]?.id || '' }));
       } catch (loadError) {
         setError(loadError instanceof Error ? loadError.message : 'Erreur de chargement');
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -95,7 +99,7 @@ export default function DocumentsPage() {
   };
 
   return (
-    <section className="space-y-6 animate-fadeIn">
+    <section className="page-wrap">
       <div>
         <h1 className="luxury-title">Documents & Photos</h1>
         <p className="text-sm text-muted">Centralisation des pièces chantier et suivi visuel avant/après.</p>
@@ -148,12 +152,22 @@ export default function DocumentsPage() {
         </Card>
       </div>
 
+      {loading ? (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card className="space-y-3">
+            {Array.from({ length: 4 }).map((_, index) => <Skeleton key={index} className="h-12 w-full" />)}
+          </Card>
+          <Card className="space-y-3">
+            {Array.from({ length: 4 }).map((_, index) => <Skeleton key={index} className="h-12 w-full" />)}
+          </Card>
+        </div>
+      ) : (
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <h2 className="text-sm font-semibold">Derniers documents</h2>
           <ul className="mt-3 space-y-2 text-sm text-muted">
             {documents.slice(0, 8).map((document) => (
-              <li key={document.id} className="rounded-xl border px-3 py-2">
+              <li key={document.id} className="rounded-2xl border border-black/[0.06] px-3 py-2.5">
                 <p className="font-medium text-foreground">{document.fileName}</p>
                 <p>{projectName(document.projectId)} · {document.category} · {document.uploadedAt}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -177,7 +191,7 @@ export default function DocumentsPage() {
           <h2 className="text-sm font-semibold">Dernières photos</h2>
           <ul className="mt-3 space-y-2 text-sm text-muted">
             {photos.slice(0, 8).map((photo) => (
-              <li key={photo.id} className="rounded-xl border px-3 py-2">
+              <li key={photo.id} className="rounded-2xl border border-black/[0.06] px-3 py-2.5">
                 <p className="font-medium text-foreground">{photo.phase.toUpperCase()} · {photo.caption || 'Photo chantier'}</p>
                 <p>{projectName(photo.projectId)} · {photo.uploadedAt}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -197,6 +211,7 @@ export default function DocumentsPage() {
           </ul>
         </Card>
       </div>
+      )}
     </section>
   );
 }

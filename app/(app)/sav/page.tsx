@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { listClients } from '@/lib/repositories/clients';
 import { listProjects } from '@/lib/repositories/projects';
 import { createServiceTicket, deleteServiceTicket, listServiceTickets, updateServiceTicketStatus } from '@/lib/repositories/service-tickets';
@@ -14,6 +15,7 @@ export default function SavPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tickets, setTickets] = useState<ServiceTicket[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const [draft, setDraft] = useState({
     title: '',
@@ -37,6 +39,8 @@ export default function SavPage() {
         }));
       } catch (loadError) {
         setError(loadError instanceof Error ? loadError.message : 'Erreur de chargement');
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -91,7 +95,7 @@ export default function SavPage() {
   };
 
   return (
-    <section className="space-y-6 animate-fadeIn">
+    <section className="page-wrap">
       <div>
         <h1 className="luxury-title">SAV</h1>
         <p className="text-sm text-muted">Suivi des interventions post-livraison et réserves.</p>
@@ -126,6 +130,15 @@ export default function SavPage() {
 
       <Card>
         <h2 className="text-sm font-semibold">Tickets en cours</h2>
+        {loading ? (
+          <div className="mt-3 space-y-2">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <Skeleton key={index} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : tickets.length === 0 ? (
+          <div className="premium-empty mt-3">Aucun ticket SAV en cours pour le moment.</div>
+        ) : (
         <ul className="mt-3 space-y-2">
           {tickets.map((ticket) => {
             const client = clients.find((entry) => entry.id === ticket.clientId);
@@ -155,6 +168,7 @@ export default function SavPage() {
             );
           })}
         </ul>
+        )}
       </Card>
     </section>
   );

@@ -11,7 +11,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <section className="space-y-6 animate-fadeIn">
+    <section className="page-wrap">
       <div>
         <h1 className="luxury-title">Paramètres</h1>
         <p className="text-sm text-muted">Gérez votre session et la sécurité de l&apos;application.</p>
