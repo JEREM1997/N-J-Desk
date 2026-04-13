@@ -196,6 +196,7 @@ export default function ProjectsPage() {
                   <p>Code postal : {client?.postalCode ?? 'Non renseigné'}</p>
                   <p>Adresse client : {client?.address || 'Non renseigné'}</p>
                   <p>Début : {project.startDate}</p>
+                  <p>Fin prévue : {project.estimatedEndDate || 'Non renseignée'}</p>
                 </div>
 
                 <div className="grid gap-3 rounded-xl border border-emerald-100 bg-emerald-50/40 p-3 text-sm md:grid-cols-2 lg:grid-cols-3">

@@ -10,6 +10,12 @@ import { listClients } from '@/lib/repositories/clients';
 import { listProjects } from '@/lib/repositories/projects';
 import { createTask, deleteTask, listTasks, updateTask } from '@/lib/repositories/tasks';
 
+const taskStatusLabel: Record<Task['status'], string> = {
+  todo: 'À faire',
+  en_cours: 'En cours',
+  done: 'Terminée'
+};
+
 export default function TasksPage() {
   const [taskItems, setTaskItems] = useState<Task[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -122,7 +128,7 @@ export default function TasksPage() {
                   <div>
                     <p className="text-sm font-medium">{task.title}</p>
                     <p className="text-xs text-muted">
-                      Échéance {task.dueDate} · Statut {task.status}
+                      Échéance {task.dueDate} · Statut {taskStatusLabel[task.status]}
                       {project ? ` · Chantier ${project.title}` : ''}
                       {client ? ` · Client ${client.firstName} ${client.lastName}` : ''}
                     </p>
