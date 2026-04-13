@@ -6,6 +6,7 @@ export const clients: Client[] = [
     firstName: 'Camille',
     lastName: 'Lemaire',
     phone: '+33 6 45 22 18 74',
+    postalCode: '75016',
     email: 'camille.lemaire@email.com',
     address: '12 avenue Foch, Paris',
     notes: 'Préfère les finitions chêne clair, disponibilité après 18h.'
@@ -15,6 +16,7 @@ export const clients: Client[] = [
     firstName: 'Alexandre',
     lastName: 'Moreau',
     phone: '+33 6 18 07 92 53',
+    postalCode: '69002',
     email: 'a.moreau@email.com',
     address: '5 rue du Bac, Lyon',
     notes: 'Suivi hebdomadaire demandé le vendredi.'

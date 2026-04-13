@@ -4,8 +4,14 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'N&J Desk',
   description: 'Pilotage premium de chantiers et suivi client pour N&J Intérieurs',
+  manifest: '/manifest.webmanifest',
   icons: {
     icon: '/branding/favicon.svg'
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'N&J Desk'
   }
 };
 
