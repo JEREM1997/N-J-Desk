@@ -4,9 +4,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Project, ProjectStatus, Client } from '@/lib/types';
+import { Project, ProjectStatus, Client, ProjectDocument, ProjectPhoto } from '@/lib/types';
 import { createActivityLog } from '@/lib/repositories/activity-logs';
 import { listClients } from '@/lib/repositories/clients';
+import { listDocuments, listPhotos } from '@/lib/repositories/documents';
 import { createProject, deleteProject, listProjects, updateProject } from '@/lib/repositories/projects';
 
 const statusLabel: Record<ProjectStatus, string> = {
@@ -30,6 +31,8 @@ const formatProjectCurrency = (value: number) => {
 export default function ProjectsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [projectItems, setProjectItems] = useState<Project[]>([]);
+  const [documentItems, setDocumentItems] = useState<ProjectDocument[]>([]);
+  const [photoItems, setPhotoItems] = useState<ProjectPhoto[]>([]);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,9 +46,11 @@ export default function ProjectsPage() {
   const loadData = async () => {
     try {
       setError(null);
-      const [clientRows, projectRows] = await Promise.all([listClients(), listProjects()]);
+      const [clientRows, projectRows, documents, photos] = await Promise.all([listClients(), listProjects(), listDocuments(), listPhotos()]);
       setClients(clientRows);
       setProjectItems(projectRows);
+      setDocumentItems(documents);
+      setPhotoItems(photos);
       setDraft((current) => ({ ...current, clientId: current.clientId || clientRows[0]?.id || '' }));
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Erreur de chargement');
@@ -170,6 +175,8 @@ export default function ProjectsPage() {
             const isEditing = editingProjectId === project.id;
             const remainingToBill = Math.max(project.quoteAmount - project.billedAmount, 0);
             const remainingToCollect = Math.max(project.quoteAmount - project.balanceReceived, 0);
+            const projectDocuments = documentItems.filter((entry) => entry.projectId === project.id);
+            const projectPhotos = photoItems.filter((entry) => entry.projectId === project.id);
 
             return (
               <Card key={project.id} className="space-y-4 premium-hover">
@@ -196,6 +203,49 @@ export default function ProjectsPage() {
                   <p>Solde encaissé : <span className="font-semibold text-foreground">{formatProjectCurrency(project.balanceReceived)}</span></p>
                   <p>Reste à facturer : <span className="font-semibold text-amber-700">{formatProjectCurrency(remainingToBill)}</span></p>
                   <p>Reste à encaisser : <span className="font-semibold text-rose-700">{formatProjectCurrency(remainingToCollect)}</span></p>
+                </div>
+
+                <div className="grid gap-3 rounded-xl border border-black/[0.06] bg-white p-3 text-sm md:grid-cols-2">
+                  <div>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Documents du chantier</p>
+                    {projectDocuments.length === 0 ? (
+                      <p className="text-xs text-muted">Aucun document lié.</p>
+                    ) : (
+                      <ul className="space-y-1">
+                        {projectDocuments.slice(0, 4).map((document) => (
+                          <li key={document.id}>
+                            {document.fileUrl ? (
+                              <a className="text-xs text-blue-700 underline" href={document.fileUrl} target="_blank" rel="noreferrer">
+                                {document.fileName}
+                              </a>
+                            ) : (
+                              <span className="text-xs text-muted">{document.fileName}</span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                  <div>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Photos du chantier</p>
+                    {projectPhotos.length === 0 ? (
+                      <p className="text-xs text-muted">Aucune photo liée.</p>
+                    ) : (
+                      <ul className="space-y-1">
+                        {projectPhotos.slice(0, 4).map((photo) => (
+                          <li key={photo.id}>
+                            {photo.fileUrl ? (
+                              <a className="text-xs text-blue-700 underline" href={photo.fileUrl} target="_blank" rel="noreferrer">
+                                {photo.caption || photo.phase.toUpperCase()}
+                              </a>
+                            ) : (
+                              <span className="text-xs text-muted">{photo.caption || photo.phase.toUpperCase()}</span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
 
                 {isEditing && (
