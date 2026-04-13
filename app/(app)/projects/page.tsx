@@ -121,6 +121,12 @@ export default function ProjectsPage() {
     }
   };
 
+  const updateProjectField = <K extends keyof Project>(id: string, field: K, value: Project[K]) => {
+    setProjectItems((current) =>
+      current.map((project) => (project.id === id ? { ...project, [field]: value } : project))
+    );
+  };
+
   return (
     <section className="space-y-6 animate-fadeIn">
       <div className="flex flex-wrap items-end justify-between gap-3">
