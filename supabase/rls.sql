@@ -1,5 +1,41 @@
 -- RLS policies for N&J Desk
 -- Exécuter après schema.sql
+-- Script idempotent: on supprime d'abord les policies existantes
+
+drop policy if exists users_select_own on users;
+drop policy if exists users_update_own on users;
+drop policy if exists users_insert_own on users;
+
+drop policy if exists clients_select_own on clients;
+drop policy if exists clients_insert_own on clients;
+drop policy if exists clients_update_own on clients;
+drop policy if exists clients_delete_own on clients;
+
+drop policy if exists projects_select_own on projects;
+drop policy if exists projects_insert_own on projects;
+drop policy if exists projects_update_own on projects;
+drop policy if exists projects_delete_own on projects;
+
+drop policy if exists tasks_select_own on tasks;
+drop policy if exists tasks_insert_own on tasks;
+drop policy if exists tasks_update_own on tasks;
+drop policy if exists tasks_delete_own on tasks;
+
+drop policy if exists documents_select_own on documents;
+drop policy if exists documents_insert_own on documents;
+drop policy if exists documents_delete_own on documents;
+
+drop policy if exists photos_select_own on photos;
+drop policy if exists photos_insert_own on photos;
+drop policy if exists photos_delete_own on photos;
+
+drop policy if exists activity_logs_select_own on activity_logs;
+drop policy if exists activity_logs_insert_own on activity_logs;
+
+drop policy if exists service_tickets_select_own on service_tickets;
+drop policy if exists service_tickets_insert_own on service_tickets;
+drop policy if exists service_tickets_update_own on service_tickets;
+drop policy if exists service_tickets_delete_own on service_tickets;
 
 alter table users enable row level security;
 alter table clients enable row level security;
