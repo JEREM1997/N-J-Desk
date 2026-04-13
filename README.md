@@ -81,6 +81,7 @@ Tables incluses :
 - `documents`
 - `photos`
 - `activity_logs`
+- `service_tickets`
 
 Le schéma gère : relations, statuts, timestamps et champs financiers pour faire évoluer le produit.
 

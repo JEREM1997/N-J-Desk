@@ -1,14 +1,28 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getStoredActivityLogs, getStoredProjects, getStoredTasks } from '@/lib/data-store';
-import { usePersistentState } from '@/lib/use-persistent-state';
+import { listActivityLogs } from '@/lib/repositories/activity-logs';
+import { listProjects } from '@/lib/repositories/projects';
+import { listTasks } from '@/lib/repositories/tasks';
+import { Project, Task } from '@/lib/types';
 
 export default function DashboardPage() {
-  const { value: projects } = usePersistentState(getStoredProjects);
-  const { value: tasks } = usePersistentState(getStoredTasks);
-  const { value: activityLogs } = usePersistentState(getStoredActivityLogs);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [activityLogs, setActivityLogs] = useState<{ id: string; message: string }[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const [projectRows, taskRows, logs] = await Promise.all([listProjects(), listTasks(), listActivityLogs(8)]);
+      setProjects(projectRows);
+      setTasks(taskRows);
+      setActivityLogs(logs.map((log) => ({ id: log.id, message: log.message })));
+    };
+
+    void load();
+  }, []);
 
   const kpis = [
     { label: 'Prospects', value: projects.filter((project) => project.status === 'prospect').length.toString() },
@@ -27,7 +41,7 @@ export default function DashboardPage() {
           <p className="mt-1 text-sm text-muted">Vision claire et premium des activités N&J Intérieurs.</p>
         </div>
         <div className="hidden rounded-xl border bg-white/80 px-4 py-2 text-xs font-medium text-muted shadow-sm lg:block">
-          Vue synchronisée localement
+          Vue synchronisée Supabase
         </div>
       </div>
 
@@ -46,9 +60,9 @@ export default function DashboardPage() {
             <h2 className="text-sm font-semibold">Activité récente</h2>
           </div>
           <ul className="mt-4 space-y-3 text-sm text-muted">
-            {activityLogs.slice(0, 8).map((log) => (
-              <li key={log} className="premium-hover rounded-xl border border-black/[0.04] bg-black/[0.02] px-3 py-2.5">
-                {log}
+            {activityLogs.map((log) => (
+              <li key={log.id} className="premium-hover rounded-xl border border-black/[0.04] bg-black/[0.02] px-3 py-2.5">
+                {log.message}
               </li>
             ))}
           </ul>

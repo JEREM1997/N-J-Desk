@@ -4,9 +4,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Project, ProjectStatus } from '@/lib/types';
-import { appendActivityLog, getStoredClients, getStoredProjects, setStoredProjects } from '@/lib/data-store';
-import { usePersistentState } from '@/lib/use-persistent-state';
+import { Project, ProjectStatus, Client } from '@/lib/types';
+import { createActivityLog } from '@/lib/repositories/activity-logs';
+import { listClients } from '@/lib/repositories/clients';
+import { createProject, deleteProject, listProjects, updateProject } from '@/lib/repositories/projects';
 
 const statusLabel: Record<ProjectStatus, string> = {
   prospect: 'Prospect',
@@ -32,62 +33,92 @@ function formatCurrency(value: number) {
 }
 
 export default function ProjectsPage() {
-  const { value: clients } = usePersistentState(getStoredClients);
-  const { value: projectItems, setValue: setProjectItems, hydrated } = usePersistentState(getStoredProjects, setStoredProjects);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [projectItems, setProjectItems] = useState<Project[]>([]);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState({
     title: '',
     address: '',
-    clientId: clients[0]?.id ?? '',
+    clientId: '',
     status: 'prospect' as ProjectStatus
   });
 
-  useEffect(() => {
-    if (!draft.clientId && clients.length > 0) {
-      setDraft((current) => ({ ...current, clientId: clients[0].id }));
+  const loadData = async () => {
+    try {
+      setError(null);
+      const [clientRows, projectRows] = await Promise.all([listClients(), listProjects()]);
+      setClients(clientRows);
+      setProjectItems(projectRows);
+      setDraft((current) => ({ ...current, clientId: current.clientId || clientRows[0]?.id || '' }));
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Erreur de chargement');
+    } finally {
+      setLoading(false);
     }
-  }, [clients, draft.clientId]);
+  };
+
+  useEffect(() => {
+    void loadData();
+  }, []);
 
   const sortedProjects = useMemo(
     () => [...projectItems].sort((a, b) => a.startDate.localeCompare(b.startDate) * -1),
     [projectItems]
   );
 
-  const createProject = () => {
+  const handleCreateProject = async () => {
     if (!draft.title.trim() || !draft.address.trim() || !draft.clientId) return;
 
-    const newProject: Project = {
-      id: `cha_${crypto.randomUUID().slice(0, 8)}`,
-      title: draft.title.trim(),
-      address: draft.address.trim(),
-      clientId: draft.clientId,
-      status: draft.status,
-      description: '',
-      startDate: new Date().toISOString().slice(0, 10),
-      estimatedEndDate: '',
-      quoteAmount: 0,
-      billedAmount: 0,
-      depositReceived: 0,
-      balanceReceived: 0,
-      internalNotes: ''
-    };
+    try {
+      const created = await createProject({
+        title: draft.title.trim(),
+        address: draft.address.trim(),
+        clientId: draft.clientId,
+        status: draft.status,
+        description: '',
+        startDate: new Date().toISOString().slice(0, 10),
+        estimatedEndDate: '',
+        quoteAmount: 0,
+        billedAmount: 0,
+        depositReceived: 0,
+        balanceReceived: 0,
+        internalNotes: ''
+      });
 
-    setProjectItems((current) => [newProject, ...current]);
-    appendActivityLog(`Chantier créé : ${newProject.title}.`);
-    setDraft((current) => ({ ...current, title: '', address: '' }));
+      setProjectItems((current) => [created, ...current]);
+      await createActivityLog({ actionType: 'project_created', message: `Chantier créé : ${created.title}.`, projectId: created.id });
+      setDraft((current) => ({ ...current, title: '', address: '' }));
+    } catch (createError) {
+      setError(createError instanceof Error ? createError.message : 'Création impossible');
+    }
   };
 
-  const deleteProject = (id: string) => {
+  const handleDeleteProject = async (id: string) => {
     const project = projectItems.find((entry) => entry.id === id);
-    setProjectItems((current) => current.filter((entry) => entry.id !== id));
-    if (project) appendActivityLog(`Chantier supprimé : ${project.title}.`);
-    if (editingProjectId === id) setEditingProjectId(null);
+
+    try {
+      await deleteProject(id);
+      setProjectItems((current) => current.filter((entry) => entry.id !== id));
+      if (project) {
+        await createActivityLog({ actionType: 'project_deleted', message: `Chantier supprimé : ${project.title}.`, projectId: id });
+      }
+      if (editingProjectId === id) setEditingProjectId(null);
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : 'Suppression impossible');
+    }
   };
 
-  const updateProjectNote = (id: string, note: string) => {
-    setProjectItems((current) =>
-      current.map((project) => (project.id === id ? { ...project, internalNotes: note } : project))
-    );
+  const updateProjectField = async <K extends keyof Project>(id: string, field: K, value: Project[K]) => {
+    setProjectItems((current) => current.map((project) => (project.id === id ? { ...project, [field]: value } : project)));
+
+    try {
+      const updated = await updateProject(id, { [field]: value } as Partial<Omit<Project, 'id'>>);
+      setProjectItems((current) => current.map((project) => (project.id === id ? updated : project)));
+    } catch {
+      await loadData();
+    }
   };
 
   const updateProjectField = <K extends keyof Project>(id: string, field: K, value: Project[K]) => {
@@ -124,11 +155,13 @@ export default function ProjectsPage() {
               </option>
             ))}
           </select>
-          <Button onClick={createProject}>Nouveau chantier</Button>
+          <Button onClick={handleCreateProject}>Nouveau chantier</Button>
         </div>
       </div>
 
-      {!hydrated ? (
+      {error && <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+
+      {loading ? (
         <Card>
           <p className="text-sm text-muted">Chargement des chantiers…</p>
         </Card>
@@ -172,52 +205,15 @@ export default function ProjectsPage() {
 
                 {isEditing && (
                   <div className="grid gap-2 rounded-xl border border-black/[0.06] bg-white p-3 md:grid-cols-2 lg:grid-cols-3">
-                    <input
-                      type="number"
-                      min={0}
-                      value={project.quoteAmount}
-                      onChange={(event) => updateProjectField(project.id, 'quoteAmount', Number(event.target.value) || 0)}
-                      placeholder="Montant devis"
-                    />
-                    <input
-                      type="number"
-                      min={0}
-                      value={project.billedAmount}
-                      onChange={(event) => updateProjectField(project.id, 'billedAmount', Number(event.target.value) || 0)}
-                      placeholder="Montant facturé"
-                    />
-                    <input
-                      type="number"
-                      min={0}
-                      value={project.depositReceived}
-                      onChange={(event) => updateProjectField(project.id, 'depositReceived', Number(event.target.value) || 0)}
-                      placeholder="Acompte encaissé"
-                    />
-                    <input
-                      type="number"
-                      min={0}
-                      value={project.balanceReceived}
-                      onChange={(event) => updateProjectField(project.id, 'balanceReceived', Number(event.target.value) || 0)}
-                      placeholder="Solde encaissé"
-                    />
-                    <input
-                      type="date"
-                      value={project.startDate}
-                      onChange={(event) => updateProjectField(project.id, 'startDate', event.target.value)}
-                    />
-                    <input
-                      type="date"
-                      value={project.estimatedEndDate}
-                      onChange={(event) => updateProjectField(project.id, 'estimatedEndDate', event.target.value)}
-                    />
-                    <select
-                      value={project.status}
-                      onChange={(event) => updateProjectField(project.id, 'status', event.target.value as ProjectStatus)}
-                    >
+                    <input type="number" min={0} value={project.quoteAmount} onChange={(event) => void updateProjectField(project.id, 'quoteAmount', Number(event.target.value) || 0)} placeholder="Montant devis" />
+                    <input type="number" min={0} value={project.billedAmount} onChange={(event) => void updateProjectField(project.id, 'billedAmount', Number(event.target.value) || 0)} placeholder="Montant facturé" />
+                    <input type="number" min={0} value={project.depositReceived} onChange={(event) => void updateProjectField(project.id, 'depositReceived', Number(event.target.value) || 0)} placeholder="Acompte encaissé" />
+                    <input type="number" min={0} value={project.balanceReceived} onChange={(event) => void updateProjectField(project.id, 'balanceReceived', Number(event.target.value) || 0)} placeholder="Solde encaissé" />
+                    <input type="date" value={project.startDate} onChange={(event) => void updateProjectField(project.id, 'startDate', event.target.value)} />
+                    <input type="date" value={project.estimatedEndDate} onChange={(event) => void updateProjectField(project.id, 'estimatedEndDate', event.target.value)} />
+                    <select value={project.status} onChange={(event) => void updateProjectField(project.id, 'status', event.target.value as ProjectStatus)}>
                       {Object.entries(statusLabel).map(([key, label]) => (
-                        <option key={key} value={key}>
-                          {label}
-                        </option>
+                        <option key={key} value={key}>{label}</option>
                       ))}
                     </select>
                   </div>
@@ -231,7 +227,7 @@ export default function ProjectsPage() {
 
                 <textarea
                   value={project.internalNotes}
-                  onChange={(event) => updateProjectNote(project.id, event.target.value)}
+                  onChange={(event) => void updateProjectField(project.id, 'internalNotes', event.target.value)}
                   placeholder="Notes internes"
                 />
 
@@ -239,10 +235,7 @@ export default function ProjectsPage() {
                   <Button className="bg-zinc-900" onClick={() => setEditingProjectId(isEditing ? null : project.id)}>
                     {isEditing ? 'Terminer la modification' : 'Modifier'}
                   </Button>
-                  <Button
-                    className="border border-zinc-300 bg-zinc-100 text-zinc-800 shadow-none hover:bg-zinc-200"
-                    onClick={() => deleteProject(project.id)}
-                  >
+                  <Button className="border border-zinc-300 bg-zinc-100 text-zinc-800 shadow-none hover:bg-zinc-200" onClick={() => void handleDeleteProject(project.id)}>
                     Supprimer
                   </Button>
                 </div>

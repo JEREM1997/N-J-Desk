@@ -71,6 +71,7 @@ export async function signInWithPassword(email: string, password: string) {
 
   const session = (await response.json()) as SupabaseAuthSession;
   setStoredSession(session);
+  await ensureUserProfile(session);
   return session;
 }
 
@@ -89,4 +90,37 @@ export async function signOut() {
   }
 
   clearStoredSession();
+}
+
+async function ensureUserProfile(session: SupabaseAuthSession) {
+  const config = getSupabaseConfig();
+  if (!config) return;
+
+  const selectResponse = await fetch(
+    `${config.url}/rest/v1/users?select=id&auth_user_id=eq.${session.user.id}&limit=1`,
+    {
+      method: 'GET',
+      headers: {
+        apikey: config.anonKey,
+        Authorization: `Bearer ${session.access_token}`
+      }
+    }
+  );
+
+  if (!selectResponse.ok) return;
+  const existing = (await selectResponse.json()) as Array<{ id: string }>;
+  if (existing.length > 0) return;
+
+  await fetch(`${config.url}/rest/v1/users`, {
+    method: 'POST',
+    headers: {
+      apikey: config.anonKey,
+      Authorization: `Bearer ${session.access_token}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal'
+    },
+    body: JSON.stringify({
+      auth_user_id: session.user.id
+    })
+  });
 }

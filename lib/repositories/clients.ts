@@ -6,6 +6,7 @@ interface ClientRow {
   first_name: string;
   last_name: string;
   phone: string | null;
+  postal_code: string | null;
   email: string | null;
   address: string | null;
   notes: string | null;
@@ -17,10 +18,10 @@ function toClient(row: ClientRow): Client {
     firstName: row.first_name,
     lastName: row.last_name,
     phone: row.phone ?? '',
+    postalCode: row.postal_code ?? '',
     email: row.email ?? '',
     address: row.address ?? '',
     notes: row.notes ?? '',
-    postalCode: ''
   };
 }
 
@@ -29,6 +30,7 @@ function toRow(client: Partial<Client>) {
     first_name: client.firstName,
     last_name: client.lastName,
     phone: client.phone,
+    postal_code: client.postalCode,
     email: client.email,
     address: client.address,
     notes: client.notes
@@ -36,7 +38,7 @@ function toRow(client: Partial<Client>) {
 }
 
 export async function listClients() {
-  const rows = await supabaseSelect<ClientRow>('clients', 'select=id,first_name,last_name,phone,email,address,notes&order=created_at.desc');
+  const rows = await supabaseSelect<ClientRow>('clients', 'select=id,first_name,last_name,phone,postal_code,email,address,notes&order=created_at.desc');
   return rows.map(toClient);
 }
 

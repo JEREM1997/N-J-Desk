@@ -1,15 +1,27 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { getStoredProjects } from '@/lib/data-store';
-import { usePersistentState } from '@/lib/use-persistent-state';
+import { listProjects } from '@/lib/repositories/projects';
+import { Project } from '@/lib/types';
 
 function chf(value: number) {
   return new Intl.NumberFormat('fr-CH', { style: 'currency', currency: 'CHF', maximumFractionDigits: 0 }).format(value || 0);
 }
 
 export default function FinancePage() {
-  const { value: projects, hydrated } = usePersistentState(getStoredProjects);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const rows = await listProjects();
+      setProjects(rows);
+      setLoading(false);
+    };
+
+    void load();
+  }, []);
 
   const totalQuote = projects.reduce((sum, project) => sum + project.quoteAmount, 0);
   const totalBilled = projects.reduce((sum, project) => sum + project.billedAmount, 0);
@@ -31,7 +43,7 @@ export default function FinancePage() {
       </div>
 
       <Card className="overflow-hidden p-0">
-        {!hydrated ? (
+        {loading ? (
           <p className="px-4 py-4 text-sm text-muted">Chargement des données financières…</p>
         ) : (
           <table className="w-full text-sm">

@@ -1,53 +1,71 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  appendActivityLog,
-  getStoredDocuments,
-  getStoredPhotos,
-  getStoredProjects,
-  setStoredDocuments,
-  setStoredPhotos
-} from '@/lib/data-store';
-import type { ProjectDocument, ProjectPhoto } from '@/lib/types';
-import { usePersistentState } from '@/lib/use-persistent-state';
+import { listProjects } from '@/lib/repositories/projects';
+import { createDocumentWithFile, createPhotoWithFile, listDocuments, listPhotos } from '@/lib/repositories/documents';
+import { ProjectDocument, ProjectPhoto, Project } from '@/lib/types';
 
 export default function DocumentsPage() {
-  const { value: projects } = usePersistentState(getStoredProjects);
-  const { value: documents, setValue: setDocuments } = usePersistentState(getStoredDocuments, setStoredDocuments);
-  const { value: photos, setValue: setPhotos } = usePersistentState(getStoredPhotos, setStoredPhotos);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [documents, setDocuments] = useState<ProjectDocument[]>([]);
+  const [photos, setPhotos] = useState<ProjectPhoto[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  const [documentDraft, setDocumentDraft] = useState({ fileName: '', category: 'autre' as ProjectDocument['category'], projectId: projects[0]?.id ?? '' });
-  const [photoDraft, setPhotoDraft] = useState({ caption: '', phase: 'avant' as ProjectPhoto['phase'], projectId: projects[0]?.id ?? '' });
+  const [documentDraft, setDocumentDraft] = useState({ file: null as File | null, category: 'autre' as ProjectDocument['category'], projectId: '' });
+  const [photoDraft, setPhotoDraft] = useState({ file: null as File | null, caption: '', phase: 'avant' as ProjectPhoto['phase'], projectId: '' });
 
-  const createDocument = () => {
-    if (!documentDraft.fileName.trim() || !documentDraft.projectId) return;
-    const document: ProjectDocument = {
-      id: `doc_${crypto.randomUUID().slice(0, 8)}`,
-      fileName: documentDraft.fileName.trim(),
-      category: documentDraft.category,
-      projectId: documentDraft.projectId,
-      uploadedAt: new Date().toISOString().slice(0, 10)
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [projectRows, documentRows, photoRows] = await Promise.all([listProjects(), listDocuments(), listPhotos()]);
+        setProjects(projectRows);
+        setDocuments(documentRows);
+        setPhotos(photoRows);
+        setDocumentDraft((current) => ({ ...current, projectId: current.projectId || projectRows[0]?.id || '' }));
+        setPhotoDraft((current) => ({ ...current, projectId: current.projectId || projectRows[0]?.id || '' }));
+      } catch (loadError) {
+        setError(loadError instanceof Error ? loadError.message : 'Erreur de chargement');
+      }
     };
-    setDocuments((current) => [document, ...current]);
-    appendActivityLog(`Document ajouté : ${document.fileName}.`);
-    setDocumentDraft((current) => ({ ...current, fileName: '' }));
+
+    void load();
+  }, []);
+
+  const handleCreateDocument = async () => {
+    if (!documentDraft.file || !documentDraft.projectId) return;
+
+    try {
+      const created = await createDocumentWithFile({
+        file: documentDraft.file,
+        category: documentDraft.category,
+        projectId: documentDraft.projectId
+      });
+
+      setDocuments((current) => [created, ...current]);
+      setDocumentDraft((current) => ({ ...current, file: null }));
+    } catch (createError) {
+      setError(createError instanceof Error ? createError.message : 'Ajout document impossible');
+    }
   };
 
-  const createPhoto = () => {
-    if (!photoDraft.projectId) return;
-    const photo: ProjectPhoto = {
-      id: `pho_${crypto.randomUUID().slice(0, 8)}`,
-      projectId: photoDraft.projectId,
-      phase: photoDraft.phase,
-      caption: photoDraft.caption.trim() || 'Photo chantier',
-      uploadedAt: new Date().toISOString().slice(0, 10)
-    };
-    setPhotos((current) => [photo, ...current]);
-    appendActivityLog(`Photo ${photo.phase} ajoutée sur chantier.`);
-    setPhotoDraft((current) => ({ ...current, caption: '' }));
+  const handleCreatePhoto = async () => {
+    if (!photoDraft.file || !photoDraft.projectId) return;
+
+    try {
+      const created = await createPhotoWithFile({
+        file: photoDraft.file,
+        phase: photoDraft.phase,
+        caption: photoDraft.caption.trim(),
+        projectId: photoDraft.projectId
+      });
+
+      setPhotos((current) => [created, ...current]);
+      setPhotoDraft((current) => ({ ...current, file: null, caption: '' }));
+    } catch (createError) {
+      setError(createError instanceof Error ? createError.message : 'Ajout photo impossible');
+    }
   };
 
   return (
@@ -57,64 +75,45 @@ export default function DocumentsPage() {
         <p className="text-sm text-muted">Centralisation des pièces chantier et suivi visuel avant/après.</p>
       </div>
 
+      {error && <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="space-y-3">
           <h2 className="text-sm font-semibold">Ajouter un document</h2>
           <div className="grid gap-2 md:grid-cols-2">
-            <input
-              placeholder="Nom du fichier"
-              value={documentDraft.fileName}
-              onChange={(event) => setDocumentDraft((current) => ({ ...current, fileName: event.target.value }))}
-            />
-            <select
-              value={documentDraft.category}
-              onChange={(event) => setDocumentDraft((current) => ({ ...current, category: event.target.value as ProjectDocument['category'] }))}
-            >
+            <input type="file" onChange={(event) => setDocumentDraft((current) => ({ ...current, file: event.target.files?.[0] ?? null }))} />
+            <select value={documentDraft.category} onChange={(event) => setDocumentDraft((current) => ({ ...current, category: event.target.value as ProjectDocument['category'] }))}>
               <option value="devis">Devis</option>
               <option value="facture">Facture</option>
               <option value="plan">Plan</option>
               <option value="contrat">Contrat</option>
               <option value="autre">Autre</option>
             </select>
-            <select
-              className="md:col-span-2"
-              value={documentDraft.projectId}
-              onChange={(event) => setDocumentDraft((current) => ({ ...current, projectId: event.target.value }))}
-            >
+            <select className="md:col-span-2" value={documentDraft.projectId} onChange={(event) => setDocumentDraft((current) => ({ ...current, projectId: event.target.value }))}>
               {projects.map((project) => (
                 <option key={project.id} value={project.id}>{project.title}</option>
               ))}
             </select>
           </div>
-          <Button onClick={createDocument}>Ajouter document</Button>
+          <Button onClick={() => void handleCreateDocument()}>Téléverser document</Button>
         </Card>
 
         <Card className="space-y-3">
           <h2 className="text-sm font-semibold">Ajouter une photo chantier</h2>
           <div className="grid gap-2 md:grid-cols-2">
-            <input
-              placeholder="Légende"
-              value={photoDraft.caption}
-              onChange={(event) => setPhotoDraft((current) => ({ ...current, caption: event.target.value }))}
-            />
-            <select
-              value={photoDraft.phase}
-              onChange={(event) => setPhotoDraft((current) => ({ ...current, phase: event.target.value as ProjectPhoto['phase'] }))}
-            >
+            <input type="file" accept="image/*" onChange={(event) => setPhotoDraft((current) => ({ ...current, file: event.target.files?.[0] ?? null }))} />
+            <select value={photoDraft.phase} onChange={(event) => setPhotoDraft((current) => ({ ...current, phase: event.target.value as ProjectPhoto['phase'] }))}>
               <option value="avant">Avant</option>
               <option value="apres">Après</option>
             </select>
-            <select
-              className="md:col-span-2"
-              value={photoDraft.projectId}
-              onChange={(event) => setPhotoDraft((current) => ({ ...current, projectId: event.target.value }))}
-            >
+            <input placeholder="Légende" value={photoDraft.caption} onChange={(event) => setPhotoDraft((current) => ({ ...current, caption: event.target.value }))} />
+            <select value={photoDraft.projectId} onChange={(event) => setPhotoDraft((current) => ({ ...current, projectId: event.target.value }))}>
               {projects.map((project) => (
                 <option key={project.id} value={project.id}>{project.title}</option>
               ))}
             </select>
           </div>
-          <Button onClick={createPhoto}>Ajouter photo</Button>
+          <Button onClick={() => void handleCreatePhoto()}>Téléverser photo</Button>
         </Card>
       </div>
 
@@ -135,7 +134,7 @@ export default function DocumentsPage() {
           <ul className="mt-3 space-y-2 text-sm text-muted">
             {photos.slice(0, 8).map((photo) => (
               <li key={photo.id} className="rounded-xl border px-3 py-2">
-                {photo.phase.toUpperCase()} · {photo.caption} · {photo.uploadedAt}
+                {photo.phase.toUpperCase()} · {photo.caption || 'Photo chantier'} · {photo.uploadedAt}
               </li>
             ))}
           </ul>

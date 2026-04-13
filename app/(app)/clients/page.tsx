@@ -1,12 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Client } from '@/lib/types';
-import { appendActivityLog, getStoredClients, getStoredProjects, setStoredClients } from '@/lib/data-store';
-import { usePersistentState } from '@/lib/use-persistent-state';
+import { createActivityLog } from '@/lib/repositories/activity-logs';
+import { createClient, listClients } from '@/lib/repositories/clients';
+import { listProjects } from '@/lib/repositories/projects';
 
 const emptyClientDraft = {
   firstName: '',
@@ -19,10 +20,34 @@ const emptyClientDraft = {
 };
 
 export default function ClientsPage() {
-  const { value: clientItems, setValue: setClientItems, hydrated } = usePersistentState(getStoredClients, setStoredClients);
-  const { value: projectItems } = usePersistentState(getStoredProjects);
+  const [clientItems, setClientItems] = useState<Client[]>([]);
+  const [projectCountByClient, setProjectCountByClient] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [draft, setDraft] = useState(emptyClientDraft);
+
+  const loadData = async () => {
+    try {
+      setError(null);
+      const [clients, projects] = await Promise.all([listClients(), listProjects()]);
+      setClientItems(clients);
+      setProjectCountByClient(
+        projects.reduce<Record<string, number>>((acc, project) => {
+          acc[project.clientId] = (acc[project.clientId] ?? 0) + 1;
+          return acc;
+        }, {})
+      );
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Erreur de chargement');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadData();
+  }, []);
 
   const filteredClients = useMemo(() => {
     if (!search.trim()) return clientItems;
@@ -33,23 +58,30 @@ export default function ClientsPage() {
     });
   }, [clientItems, search]);
 
-  const createClient = () => {
+  const handleCreateClient = async () => {
     if (!draft.firstName.trim() || !draft.lastName.trim()) return;
 
-    const newClient: Client = {
-      id: `cli_${crypto.randomUUID().slice(0, 8)}`,
-      firstName: draft.firstName.trim(),
-      lastName: draft.lastName.trim(),
-      phone: draft.phone.trim(),
-      postalCode: draft.postalCode.trim(),
-      email: draft.email.trim(),
-      address: draft.address.trim(),
-      notes: draft.notes.trim()
-    };
+    try {
+      const created = await createClient({
+        firstName: draft.firstName.trim(),
+        lastName: draft.lastName.trim(),
+        phone: draft.phone.trim(),
+        postalCode: draft.postalCode.trim(),
+        email: draft.email.trim(),
+        address: draft.address.trim(),
+        notes: draft.notes.trim()
+      });
 
-    setClientItems((current) => [newClient, ...current]);
-    appendActivityLog(`Nouveau client créé : ${newClient.firstName} ${newClient.lastName}.`);
-    setDraft(emptyClientDraft);
+      setClientItems((current) => [created, ...current]);
+      await createActivityLog({
+        actionType: 'client_created',
+        message: `Nouveau client créé : ${created.firstName} ${created.lastName}.`,
+        clientId: created.id
+      });
+      setDraft(emptyClientDraft);
+    } catch (createError) {
+      setError(createError instanceof Error ? createError.message : 'Création impossible');
+    }
   };
 
   return (
@@ -61,9 +93,11 @@ export default function ClientsPage() {
         </div>
         <div className="flex gap-2">
           <input placeholder="Rechercher un client" value={search} onChange={(event) => setSearch(event.target.value)} />
-          <Button onClick={createClient}>Nouveau client</Button>
+          <Button onClick={handleCreateClient}>Nouveau client</Button>
         </div>
       </div>
+
+      {error && <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
 
       <Card className="space-y-3">
         <h2 className="text-sm font-semibold">Créer un client</h2>
@@ -78,7 +112,7 @@ export default function ClientsPage() {
       </Card>
 
       <Card className="overflow-hidden p-0">
-        {!hydrated ? (
+        {loading ? (
           <p className="px-4 py-4 text-sm text-muted">Chargement des clients…</p>
         ) : (
           <table className="w-full text-sm">
@@ -100,7 +134,7 @@ export default function ClientsPage() {
                   </td>
                   <td className="px-4 py-3.5 text-muted">{client.email || 'Non renseigné'}</td>
                   <td className="px-4 py-3.5 text-muted">{client.phone || 'Non renseigné'}</td>
-                  <td className="px-4 py-3.5">{projectItems.filter((project) => project.clientId === client.id).length}</td>
+                  <td className="px-4 py-3.5">{projectCountByClient[client.id] ?? 0}</td>
                 </tr>
               ))}
             </tbody>

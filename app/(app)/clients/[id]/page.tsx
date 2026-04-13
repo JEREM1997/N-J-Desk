@@ -1,19 +1,42 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Card } from '@/components/ui/card';
-import { getStoredClients, getStoredProjects } from '@/lib/data-store';
-import { usePersistentState } from '@/lib/use-persistent-state';
+import { Client, Project } from '@/lib/types';
+import { listClients } from '@/lib/repositories/clients';
+import { listProjects } from '@/lib/repositories/projects';
 
 export default function ClientDetailPage() {
   const params = useParams<{ id: string }>();
   const clientId = params.id;
-  const { value: clients } = usePersistentState(getStoredClients);
-  const { value: projects } = usePersistentState(getStoredProjects);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const [clientRows, projectRows] = await Promise.all([listClients(), listProjects()]);
+      setClients(clientRows);
+      setProjects(projectRows);
+      setLoading(false);
+    };
+
+    void load();
+  }, []);
 
   const client = useMemo(() => clients.find((entry) => entry.id === clientId), [clients, clientId]);
   const linkedProjects = useMemo(() => projects.filter((project) => project.clientId === clientId), [projects, clientId]);
+
+  if (loading) {
+    return (
+      <section className="space-y-6 animate-fadeIn">
+        <Card>
+          <p className="text-sm text-muted">Chargement du client…</p>
+        </Card>
+      </section>
+    );
+  }
 
   if (!client) {
     return (

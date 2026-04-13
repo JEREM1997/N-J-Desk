@@ -18,6 +18,11 @@ function getAuthHeaders() {
   };
 }
 
+function getAuthContext() {
+  const { config, headers } = getAuthHeaders();
+  return { config, token: headers.Authorization.replace('Bearer ', ''), apikey: headers.apikey };
+}
+
 export async function supabaseSelect<T>(table: string, query: string) {
   const { config, headers } = getAuthHeaders();
   const response = await fetch(`${config.url}/rest/v1/${table}?${query}`, {
@@ -79,5 +84,24 @@ export async function supabaseDelete(table: string, id: string) {
 
   if (!response.ok) {
     throw new Error(`Erreur suppression ${table}`);
+  }
+}
+
+export async function supabaseUploadObject(bucket: string, objectPath: string, file: File) {
+  const { config, token, apikey } = getAuthContext();
+
+  const response = await fetch(`${config.url}/storage/v1/object/${bucket}/${objectPath}`, {
+    method: 'POST',
+    headers: {
+      apikey,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': file.type || 'application/octet-stream',
+      'x-upsert': 'false'
+    },
+    body: file
+  });
+
+  if (!response.ok) {
+    throw new Error('Upload fichier impossible');
   }
 }

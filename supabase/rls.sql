@@ -8,6 +8,7 @@ alter table tasks enable row level security;
 alter table documents enable row level security;
 alter table photos enable row level security;
 alter table activity_logs enable row level security;
+alter table service_tickets enable row level security;
 
 -- USERS
 create policy users_select_own on users
@@ -16,6 +17,9 @@ for select using (auth_user_id = auth.uid());
 create policy users_update_own on users
 for update using (auth_user_id = auth.uid())
 with check (auth_user_id = auth.uid());
+
+create policy users_insert_own on users
+for insert with check (auth_user_id = auth.uid());
 
 -- CLIENTS
 create policy clients_select_own on clients
@@ -217,6 +221,49 @@ for insert with check (
   exists (
     select 1 from users u
     where u.id = activity_logs.owner_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+-- SERVICE TICKETS
+create policy service_tickets_select_own on service_tickets
+for select using (
+  exists (
+    select 1 from users u
+    where u.id = service_tickets.owner_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+create policy service_tickets_insert_own on service_tickets
+for insert with check (
+  exists (
+    select 1 from users u
+    where u.id = service_tickets.owner_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+create policy service_tickets_update_own on service_tickets
+for update using (
+  exists (
+    select 1 from users u
+    where u.id = service_tickets.owner_id
+      and u.auth_user_id = auth.uid()
+  )
+) with check (
+  exists (
+    select 1 from users u
+    where u.id = service_tickets.owner_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+create policy service_tickets_delete_own on service_tickets
+for delete using (
+  exists (
+    select 1 from users u
+    where u.id = service_tickets.owner_id
       and u.auth_user_id = auth.uid()
   )
 );
