@@ -46,7 +46,8 @@ Ouvrir `http://localhost:3000`.
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 4. Exécutez `supabase/schema.sql`, puis `supabase/seed.sql`, puis `supabase/rls.sql` dans SQL Editor.
-5. Créez un bucket Storage (ex: `project-files`) pour documents/photos.
+5. Si votre DB existait déjà avant ces évolutions, exécutez aussi `supabase/patch_required_fields.sql`.
+6. Créez un bucket Storage (ex: `project-files`) pour documents/photos.
 
 Exemple :
 
