@@ -24,9 +24,9 @@ function getCityFromAddress(address: string) {
 }
 
 function formatCurrency(value: number) {
-  return new Intl.NumberFormat('fr-FR', {
+  return new Intl.NumberFormat('fr-CH', {
     style: 'currency',
-    currency: 'EUR',
+    currency: 'CHF',
     maximumFractionDigits: 0
   }).format(value || 0);
 }
