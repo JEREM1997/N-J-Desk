@@ -52,11 +52,11 @@ export default function FinancePage() {
           </div>
         ) : (
           <>
-            <div className="space-y-2 p-2 md:hidden">
+            <div className="space-y-2 p-2.5 md:hidden">
               {projects.map((project) => {
                 const remaining = Math.max(project.quoteAmount - project.balanceReceived, 0);
                 return (
-                  <div key={project.id} className="rounded-xl border border-black/[0.06] bg-white p-3 text-sm">
+                  <div key={project.id} className="rounded-2xl border border-black/[0.06] bg-white p-3.5 text-sm shadow-[0_1px_0_rgba(255,255,255,0.7)_inset]">
                     <p className="font-semibold">{project.title}</p>
                     <div className="mt-2 grid grid-cols-2 gap-1 text-xs text-muted">
                       <p>Devis</p><p className="text-right text-foreground">{chf(project.quoteAmount)}</p>

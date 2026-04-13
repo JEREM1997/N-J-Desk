@@ -12,6 +12,7 @@
 
 body {
   @apply bg-background text-foreground antialiased;
+  text-rendering: optimizeLegibility;
   font-feature-settings: 'ss01' 1, 'cv11' 1, 'kern' 1;
   background-image:
     radial-gradient(circle at 6% -12%, rgba(201, 178, 143, 0.22), transparent 34%),
@@ -29,7 +30,7 @@ h4 {
 input,
 textarea,
 select {
-  @apply rounded-xl border border-zinc-200/80 bg-white/95 px-3.5 py-2.5 text-sm text-zinc-900 shadow-[0_1px_0_rgba(255,255,255,0.8)_inset,0_8px_18px_rgba(20,20,20,0.04)] outline-none transition duration-200;
+  @apply min-h-10 rounded-xl border border-zinc-200/80 bg-white/95 px-3.5 py-2.5 text-sm text-zinc-900 shadow-[0_1px_0_rgba(255,255,255,0.8)_inset,0_8px_18px_rgba(20,20,20,0.04)] outline-none transition duration-300;
   @apply placeholder:text-muted/75 hover:border-zinc-300;
   @apply focus:border-accent/45 focus:ring-4 focus:ring-accent/10;
 }
@@ -64,7 +65,7 @@ textarea {
   }
 
   .skeleton {
-    @apply relative overflow-hidden rounded-xl bg-zinc-200/70;
+    @apply relative overflow-hidden rounded-xl border border-white/80 bg-zinc-200/70;
   }
 
   .skeleton::after {
@@ -83,5 +84,16 @@ textarea {
 
   .premium-empty {
     @apply rounded-2xl border border-dashed border-zinc-300 bg-white/60 p-5 text-sm text-muted;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

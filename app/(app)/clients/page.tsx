@@ -114,7 +114,7 @@ export default function ClientsPage() {
 
       {error && <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
 
-      <Card className="space-y-3">
+      <Card className="space-y-3 p-4 sm:p-5">
         <h2 className="text-sm font-semibold">Créer un client</h2>
         <div className="grid gap-2 md:grid-cols-3">
           <input placeholder="Prénom" value={draft.firstName} onChange={(event) => setDraft((current) => ({ ...current, firstName: event.target.value }))} />
@@ -136,9 +136,9 @@ export default function ClientsPage() {
         ) : (
           <>
             <div className="md:hidden">
-              <ul className="space-y-2 p-2">
+              <ul className="space-y-2 p-2.5">
                 {filteredClients.map((client) => (
-                  <li key={client.id} className="rounded-xl border border-black/[0.06] bg-white p-3 text-sm">
+                  <li key={client.id} className="rounded-2xl border border-black/[0.06] bg-white p-3.5 text-sm shadow-[0_1px_0_rgba(255,255,255,0.7)_inset]">
                     <Link className="font-semibold hover:underline" href={`/clients/${client.id}`}>
                       {client.firstName} {client.lastName}
                     </Link>
