@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { listClients } from '@/lib/repositories/clients';
 import { listProjects } from '@/lib/repositories/projects';
-import { createServiceTicket, listServiceTickets, updateServiceTicketStatus } from '@/lib/repositories/service-tickets';
+import { createServiceTicket, deleteServiceTicket, listServiceTickets, updateServiceTicketStatus } from '@/lib/repositories/service-tickets';
 import type { ServiceTicket, Client, Project } from '@/lib/types';
 
 export default function SavPage() {
@@ -75,6 +75,21 @@ export default function SavPage() {
     }
   };
 
+  const handleDeleteTicket = async (id: string) => {
+    const shouldDelete = window.confirm('Supprimer ce ticket SAV ?');
+    if (!shouldDelete) return;
+
+    const previous = tickets;
+    setTickets((current) => current.filter((ticket) => ticket.id !== id));
+
+    try {
+      await deleteServiceTicket(id);
+    } catch (deleteError) {
+      setTickets(previous);
+      setError(deleteError instanceof Error ? deleteError.message : 'Suppression ticket impossible');
+    }
+  };
+
   return (
     <section className="space-y-6 animate-fadeIn">
       <div>
@@ -129,6 +144,12 @@ export default function SavPage() {
                     <option value="planifie">Planifié</option>
                     <option value="resolu">Résolu</option>
                   </select>
+                  <Button
+                    className="border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs text-rose-700 shadow-none hover:bg-rose-100"
+                    onClick={() => void handleDeleteTicket(ticket.id)}
+                  >
+                    Supprimer
+                  </Button>
                 </div>
               </li>
             );

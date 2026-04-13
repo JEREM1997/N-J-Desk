@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Client } from '@/lib/types';
 import { createActivityLog } from '@/lib/repositories/activity-logs';
 import { createClient, deleteClient, listClients } from '@/lib/repositories/clients';
@@ -99,14 +100,14 @@ export default function ClientsPage() {
   };
 
   return (
-    <section className="space-y-6 animate-fadeIn">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+    <section className="page-wrap">
+      <div className="page-head">
         <div>
           <h1 className="luxury-title">Clients</h1>
           <p className="text-sm text-muted">Recherche et suivi des relations clients.</p>
         </div>
-        <div className="flex gap-2">
-          <input placeholder="Rechercher un client" value={search} onChange={(event) => setSearch(event.target.value)} />
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <input className="w-full sm:w-64" placeholder="Rechercher un client" value={search} onChange={(event) => setSearch(event.target.value)} />
           <Button onClick={handleCreateClient}>Nouveau client</Button>
         </div>
       </div>
@@ -127,38 +128,63 @@ export default function ClientsPage() {
 
       <Card className="overflow-hidden p-0">
         {loading ? (
-          <p className="px-4 py-4 text-sm text-muted">Chargement des clients…</p>
+          <div className="space-y-3 px-4 py-4">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <Skeleton key={index} className="h-12 w-full" />
+            ))}
+          </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="table-head">
-              <tr>
-                <th className="px-4 py-3">Nom</th>
-                <th className="px-4 py-3">Email</th>
-                <th className="px-4 py-3">Téléphone</th>
-                <th className="px-4 py-3">Chantiers liés</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredClients.map((client) => (
-                <tr key={client.id} className="border-t border-black/[0.04] transition-colors hover:bg-black/[0.02]">
-                  <td className="px-4 py-3.5 font-medium">
-                    <Link className="hover:underline" href={`/clients/${client.id}`}>
+          <>
+            <div className="md:hidden">
+              <ul className="space-y-2 p-2">
+                {filteredClients.map((client) => (
+                  <li key={client.id} className="rounded-xl border border-black/[0.06] bg-white p-3 text-sm">
+                    <Link className="font-semibold hover:underline" href={`/clients/${client.id}`}>
                       {client.firstName} {client.lastName}
                     </Link>
-                  </td>
-                  <td className="px-4 py-3.5 text-muted">{client.email || 'Non renseigné'}</td>
-                  <td className="px-4 py-3.5 text-muted">{client.phone || 'Non renseigné'}</td>
-                  <td className="px-4 py-3.5">{projectCountByClient[client.id] ?? 0}</td>
-                  <td className="px-4 py-3.5 text-right">
-                    <button className="text-xs text-rose-700 underline" onClick={() => void handleDeleteClient(client)}>
-                      Supprimer
-                    </button>
-                  </td>
+                    <p className="mt-1 text-xs text-muted">{client.email || 'Email non renseigné'}</p>
+                    <p className="text-xs text-muted">{client.phone || 'Téléphone non renseigné'}</p>
+                    <div className="mt-2 flex items-center justify-between">
+                      <p className="text-xs text-muted">Chantiers liés : {projectCountByClient[client.id] ?? 0}</p>
+                      <button className="text-xs font-medium text-rose-700 underline" onClick={() => void handleDeleteClient(client)}>
+                        Supprimer
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <table className="hidden w-full text-sm md:table">
+              <thead className="table-head">
+                <tr>
+                  <th className="px-4 py-3">Nom</th>
+                  <th className="px-4 py-3">Email</th>
+                  <th className="px-4 py-3">Téléphone</th>
+                  <th className="px-4 py-3">Chantiers liés</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredClients.map((client) => (
+                  <tr key={client.id} className="border-t border-black/[0.04] transition-colors hover:bg-black/[0.02]">
+                    <td className="px-4 py-3.5 font-medium">
+                      <Link className="hover:underline" href={`/clients/${client.id}`}>
+                        {client.firstName} {client.lastName}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3.5 text-muted">{client.email || 'Non renseigné'}</td>
+                    <td className="px-4 py-3.5 text-muted">{client.phone || 'Non renseigné'}</td>
+                    <td className="px-4 py-3.5">{projectCountByClient[client.id] ?? 0}</td>
+                    <td className="px-4 py-3.5 text-right">
+                      <button className="text-xs text-rose-700 underline" onClick={() => void handleDeleteClient(client)}>
+                        Supprimer
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
         )}
       </Card>
     </section>
