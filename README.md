@@ -41,9 +41,28 @@ Ouvrir `http://localhost:3000`.
 ## Configuration Supabase
 
 1. Créez un projet Supabase.
-2. Renseignez les variables dans `.env.local`.
-3. Exécutez `supabase/schema.sql` puis `supabase/seed.sql` dans SQL Editor.
-4. Créez un bucket Storage (ex: `project-files`) pour documents/photos.
+2. Copiez `.env.example` vers `.env.local`.
+3. Renseignez **obligatoirement** :
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+4. Exécutez `supabase/schema.sql` puis `supabase/seed.sql` dans SQL Editor.
+5. Créez un bucket Storage (ex: `project-files`) pour documents/photos.
+
+Exemple :
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+```
+
+### Déploiement Vercel (important)
+
+Ajoutez les mêmes variables dans **Vercel > Project Settings > Environment Variables** :
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+Si elles ne sont pas définies, l'authentification ne peut pas fonctionner.
 
 ## Schéma base de données
 
@@ -65,4 +84,3 @@ Le schéma gère : relations, statuts, timestamps et champs financiers pour fair
 - Composants réutilisables (Card, Button, Badge)
 - Sidebar et cartes conçues pour un rendu SaaS haut de gamme
 - Responsive desktop + mobile
-
