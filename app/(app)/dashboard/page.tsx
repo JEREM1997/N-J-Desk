@@ -1,16 +1,23 @@
+'use client';
+
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { activityLogs, projects, tasks } from '@/lib/mock-data';
-
-const kpis = [
-  { label: 'Prospects', value: '14' },
-  { label: 'Devis en attente', value: '6' },
-  { label: 'Chantiers en cours', value: projects.filter((p) => p.status === 'en_cours').length.toString() },
-  { label: 'Chantiers terminés', value: '22' },
-  { label: 'Paiements à relancer', value: '3' }
-];
+import { getStoredActivityLogs, getStoredProjects, getStoredTasks } from '@/lib/data-store';
+import { usePersistentState } from '@/lib/use-persistent-state';
 
 export default function DashboardPage() {
+  const { value: projects } = usePersistentState(getStoredProjects, () => undefined);
+  const { value: tasks } = usePersistentState(getStoredTasks, () => undefined);
+  const { value: activityLogs } = usePersistentState(getStoredActivityLogs, () => undefined);
+
+  const kpis = [
+    { label: 'Prospects', value: projects.filter((project) => project.status === 'prospect').length.toString() },
+    { label: 'Devis en attente', value: projects.filter((project) => project.status === 'devis_envoye').length.toString() },
+    { label: 'Chantiers en cours', value: projects.filter((project) => project.status === 'en_cours').length.toString() },
+    { label: 'Chantiers terminés', value: projects.filter((project) => project.status === 'termine').length.toString() },
+    { label: 'Paiements à relancer', value: projects.filter((project) => project.balanceReceived < project.quoteAmount).length.toString() }
+  ];
+
   return (
     <section className="space-y-7 animate-fadeIn">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -20,7 +27,7 @@ export default function DashboardPage() {
           <p className="mt-1 text-sm text-muted">Vision claire et premium des activités N&J Intérieurs.</p>
         </div>
         <div className="hidden rounded-xl border bg-white/80 px-4 py-2 text-xs font-medium text-muted shadow-sm lg:block">
-          Mise à jour en temps réel
+          Vue synchronisée localement
         </div>
       </div>
 
@@ -39,7 +46,7 @@ export default function DashboardPage() {
             <h2 className="text-sm font-semibold">Activité récente</h2>
           </div>
           <ul className="mt-4 space-y-3 text-sm text-muted">
-            {activityLogs.map((log) => (
+            {activityLogs.slice(0, 8).map((log) => (
               <li key={log} className="premium-hover rounded-xl border border-black/[0.04] bg-black/[0.02] px-3 py-2.5">
                 {log}
               </li>
@@ -52,7 +59,7 @@ export default function DashboardPage() {
             <h2 className="text-sm font-semibold">Tâches prioritaires</h2>
           </div>
           <ul className="mt-4 space-y-3">
-            {tasks.map((task) => (
+            {tasks.slice(0, 8).map((task) => (
               <li key={task.id} className="premium-hover flex items-center justify-between rounded-xl border border-black/[0.05] px-3 py-2.5">
                 <div>
                   <p className="text-sm font-medium">{task.title}</p>
