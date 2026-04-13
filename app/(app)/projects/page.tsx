@@ -1,11 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { clients, projects as initialProjects } from '@/lib/mock-data';
 import { Project, ProjectStatus } from '@/lib/types';
+import { appendActivityLog, getStoredClients, getStoredProjects, setStoredProjects } from '@/lib/data-store';
+import { usePersistentState } from '@/lib/use-persistent-state';
 
 const statusLabel: Record<ProjectStatus, string> = {
   prospect: 'Prospect',
@@ -17,22 +18,27 @@ const statusLabel: Record<ProjectStatus, string> = {
   sav: 'SAV'
 };
 
-const emptyProjectDraft = {
-  title: '',
-  address: '',
-  clientId: clients[0]?.id ?? '',
-  status: 'prospect' as ProjectStatus
-};
-
 function getCityFromAddress(address: string) {
   const chunks = address.split(',').map((chunk) => chunk.trim()).filter(Boolean);
   return chunks[chunks.length - 1] ?? '';
 }
 
 export default function ProjectsPage() {
-  const [projectItems, setProjectItems] = useState<Project[]>(initialProjects);
-  const [draft, setDraft] = useState(emptyProjectDraft);
+  const { value: clients } = usePersistentState(getStoredClients);
+  const { value: projectItems, setValue: setProjectItems, hydrated } = usePersistentState(getStoredProjects, setStoredProjects);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [draft, setDraft] = useState({
+    title: '',
+    address: '',
+    clientId: clients[0]?.id ?? '',
+    status: 'prospect' as ProjectStatus
+  });
+
+  useEffect(() => {
+    if (!draft.clientId && clients.length > 0) {
+      setDraft((current) => ({ ...current, clientId: clients[0].id }));
+    }
+  }, [clients, draft.clientId]);
 
   const sortedProjects = useMemo(
     () => [...projectItems].sort((a, b) => a.startDate.localeCompare(b.startDate) * -1),
@@ -59,11 +65,14 @@ export default function ProjectsPage() {
     };
 
     setProjectItems((current) => [newProject, ...current]);
-    setDraft(emptyProjectDraft);
+    appendActivityLog(`Chantier créé : ${newProject.title}.`);
+    setDraft((current) => ({ ...current, title: '', address: '' }));
   };
 
   const deleteProject = (id: string) => {
-    setProjectItems((current) => current.filter((project) => project.id !== id));
+    const project = projectItems.find((entry) => entry.id === id);
+    setProjectItems((current) => current.filter((entry) => entry.id !== id));
+    if (project) appendActivityLog(`Chantier supprimé : ${project.title}.`);
     if (editingProjectId === id) setEditingProjectId(null);
   };
 
@@ -105,53 +114,59 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      <div className="space-y-4">
-        {sortedProjects.map((project) => {
-          const client = clients.find((entry) => entry.id === project.clientId);
-          const city = getCityFromAddress(project.address);
-          const isEditing = editingProjectId === project.id;
+      {!hydrated ? (
+        <Card>
+          <p className="text-sm text-muted">Chargement des chantiers…</p>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {sortedProjects.map((project) => {
+            const client = clients.find((entry) => entry.id === project.clientId);
+            const city = getCityFromAddress(project.address);
+            const isEditing = editingProjectId === project.id;
 
-          return (
-            <Card key={project.id} className="space-y-4 premium-hover">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-lg font-semibold tracking-tight">{project.title}</h2>
-                  <p className="text-sm text-muted">
-                    {project.address}
-                    {city && client?.postalCode ? ` · ${client.postalCode} ${city}` : ''}
-                  </p>
+            return (
+              <Card key={project.id} className="space-y-4 premium-hover">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-lg font-semibold tracking-tight">{project.title}</h2>
+                    <p className="text-sm text-muted">
+                      {project.address}
+                      {city && client?.postalCode ? ` · ${client.postalCode} ${city}` : ''}
+                    </p>
+                  </div>
+                  <Badge tone={project.status === 'en_cours' ? 'success' : 'default'}>{statusLabel[project.status]}</Badge>
                 </div>
-                <Badge tone={project.status === 'en_cours' ? 'success' : 'default'}>{statusLabel[project.status]}</Badge>
-              </div>
 
-              <div className="grid gap-3 rounded-xl border border-black/[0.04] bg-black/[0.015] p-3 text-sm text-muted md:grid-cols-2 lg:grid-cols-4">
-                <p>Client : {client?.firstName} {client?.lastName}</p>
-                <p>Téléphone : {client?.phone ?? 'Non renseigné'}</p>
-                <p>Code postal : {client?.postalCode ?? 'Non renseigné'}</p>
-                <p>Début : {project.startDate}</p>
-              </div>
+                <div className="grid gap-3 rounded-xl border border-black/[0.04] bg-black/[0.015] p-3 text-sm text-muted md:grid-cols-2 lg:grid-cols-4">
+                  <p>Client : {client?.firstName} {client?.lastName}</p>
+                  <p>Téléphone : {client?.phone ?? 'Non renseigné'}</p>
+                  <p>Code postal : {client?.postalCode ?? 'Non renseigné'}</p>
+                  <p>Début : {project.startDate}</p>
+                </div>
 
-              <textarea
-                value={project.internalNotes}
-                onChange={(event) => updateProjectNote(project.id, event.target.value)}
-                placeholder="Notes internes"
-              />
+                <textarea
+                  value={project.internalNotes}
+                  onChange={(event) => updateProjectNote(project.id, event.target.value)}
+                  placeholder="Notes internes"
+                />
 
-              <div className="flex gap-2">
-                <Button className="bg-zinc-900" onClick={() => setEditingProjectId(isEditing ? null : project.id)}>
-                  {isEditing ? 'Terminer la modification' : 'Modifier'}
-                </Button>
-                <Button
-                  className="border border-zinc-300 bg-zinc-100 text-zinc-800 shadow-none hover:bg-zinc-200"
-                  onClick={() => deleteProject(project.id)}
-                >
-                  Supprimer
-                </Button>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+                <div className="flex gap-2">
+                  <Button className="bg-zinc-900" onClick={() => setEditingProjectId(isEditing ? null : project.id)}>
+                    {isEditing ? 'Terminer la modification' : 'Modifier'}
+                  </Button>
+                  <Button
+                    className="border border-zinc-300 bg-zinc-100 text-zinc-800 shadow-none hover:bg-zinc-200"
+                    onClick={() => deleteProject(project.id)}
+                  >
+                    Supprimer
+                  </Button>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }
