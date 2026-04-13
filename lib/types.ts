@@ -52,6 +52,7 @@ export interface ProjectDocument {
   fileName: string;
   category: 'devis' | 'facture' | 'plan' | 'contrat' | 'autre';
   uploadedAt: string;
+  fileUrl?: string;
 }
 
 export interface ProjectPhoto {
@@ -60,6 +61,7 @@ export interface ProjectPhoto {
   phase: 'avant' | 'apres';
   caption: string;
   uploadedAt: string;
+  fileUrl?: string;
 }
 
 export interface ServiceTicket {

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { listProjects } from '@/lib/repositories/projects';
-import { createDocumentWithFile, createPhotoWithFile, listDocuments, listPhotos } from '@/lib/repositories/documents';
+import { createDocumentWithFile, createPhotoWithFile, deleteDocument, deletePhoto, listDocuments, listPhotos } from '@/lib/repositories/documents';
 import { ProjectDocument, ProjectPhoto, Project } from '@/lib/types';
 
 export default function DocumentsPage() {
@@ -13,7 +13,12 @@ export default function DocumentsPage() {
   const [photos, setPhotos] = useState<ProjectPhoto[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const [documentDraft, setDocumentDraft] = useState({ file: null as File | null, category: 'autre' as ProjectDocument['category'], projectId: '' });
+  const [documentDraft, setDocumentDraft] = useState({
+    file: null as File | null,
+    customName: '',
+    category: 'autre' as ProjectDocument['category'],
+    projectId: ''
+  });
   const [photoDraft, setPhotoDraft] = useState({ file: null as File | null, caption: '', phase: 'avant' as ProjectPhoto['phase'], projectId: '' });
 
   useEffect(() => {
@@ -39,12 +44,13 @@ export default function DocumentsPage() {
     try {
       const created = await createDocumentWithFile({
         file: documentDraft.file,
+        fileName: documentDraft.customName,
         category: documentDraft.category,
         projectId: documentDraft.projectId
       });
 
       setDocuments((current) => [created, ...current]);
-      setDocumentDraft((current) => ({ ...current, file: null }));
+      setDocumentDraft((current) => ({ ...current, file: null, customName: '' }));
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : 'Ajout document impossible');
     }
@@ -68,6 +74,26 @@ export default function DocumentsPage() {
     }
   };
 
+  const projectName = (projectId: string) => projects.find((entry) => entry.id === projectId)?.title || 'Chantier inconnu';
+
+  const handleDeleteDocument = async (id: string) => {
+    try {
+      await deleteDocument(id);
+      setDocuments((current) => current.filter((entry) => entry.id !== id));
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : 'Suppression document impossible');
+    }
+  };
+
+  const handleDeletePhoto = async (id: string) => {
+    try {
+      await deletePhoto(id);
+      setPhotos((current) => current.filter((entry) => entry.id !== id));
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : 'Suppression photo impossible');
+    }
+  };
+
   return (
     <section className="space-y-6 animate-fadeIn">
       <div>
@@ -82,6 +108,11 @@ export default function DocumentsPage() {
           <h2 className="text-sm font-semibold">Ajouter un document</h2>
           <div className="grid gap-2 md:grid-cols-2">
             <input type="file" onChange={(event) => setDocumentDraft((current) => ({ ...current, file: event.target.files?.[0] ?? null }))} />
+            <input
+              placeholder="Nom du fichier affiché (optionnel)"
+              value={documentDraft.customName}
+              onChange={(event) => setDocumentDraft((current) => ({ ...current, customName: event.target.value }))}
+            />
             <select value={documentDraft.category} onChange={(event) => setDocumentDraft((current) => ({ ...current, category: event.target.value as ProjectDocument['category'] }))}>
               <option value="devis">Devis</option>
               <option value="facture">Facture</option>
@@ -123,7 +154,20 @@ export default function DocumentsPage() {
           <ul className="mt-3 space-y-2 text-sm text-muted">
             {documents.slice(0, 8).map((document) => (
               <li key={document.id} className="rounded-xl border px-3 py-2">
-                {document.fileName} · {document.category} · {document.uploadedAt}
+                <p className="font-medium text-foreground">{document.fileName}</p>
+                <p>{projectName(document.projectId)} · {document.category} · {document.uploadedAt}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {document.fileUrl ? (
+                    <a className="text-xs text-blue-700 underline" href={document.fileUrl} target="_blank" rel="noreferrer">
+                      Voir / télécharger
+                    </a>
+                  ) : (
+                    <span className="text-xs text-muted">URL temporaire indisponible</span>
+                  )}
+                  <button className="text-xs text-rose-700 underline" onClick={() => void handleDeleteDocument(document.id)}>
+                    Supprimer
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
@@ -134,7 +178,20 @@ export default function DocumentsPage() {
           <ul className="mt-3 space-y-2 text-sm text-muted">
             {photos.slice(0, 8).map((photo) => (
               <li key={photo.id} className="rounded-xl border px-3 py-2">
-                {photo.phase.toUpperCase()} · {photo.caption || 'Photo chantier'} · {photo.uploadedAt}
+                <p className="font-medium text-foreground">{photo.phase.toUpperCase()} · {photo.caption || 'Photo chantier'}</p>
+                <p>{projectName(photo.projectId)} · {photo.uploadedAt}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {photo.fileUrl ? (
+                    <a className="text-xs text-blue-700 underline" href={photo.fileUrl} target="_blank" rel="noreferrer">
+                      Voir la photo
+                    </a>
+                  ) : (
+                    <span className="text-xs text-muted">URL temporaire indisponible</span>
+                  )}
+                  <button className="text-xs text-rose-700 underline" onClick={() => void handleDeletePhoto(photo.id)}>
+                    Supprimer
+                  </button>
+                </div>
               </li>
             ))}
           </ul>

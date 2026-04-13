@@ -119,6 +119,18 @@ export async function supabaseDelete(table: string, id: string) {
   }
 }
 
+export async function supabaseDeleteWhere(table: string, filterQuery: string) {
+  const { config, headers } = getAuthHeaders();
+  const response = await fetch(`${config.url}/rest/v1/${table}?${filterQuery}`, {
+    method: 'DELETE',
+    headers
+  });
+
+  if (!response.ok) {
+    throw new Error(await buildSupabaseError(response, `Erreur suppression ${table}`));
+  }
+}
+
 export async function supabaseUploadObject(bucket: string, objectPath: string, file: File) {
   const { config, token, apikey } = getAuthContext();
 
@@ -136,4 +148,43 @@ export async function supabaseUploadObject(bucket: string, objectPath: string, f
   if (!response.ok) {
     throw new Error(await buildSupabaseError(response, 'Upload fichier impossible'));
   }
+}
+
+export async function supabaseDeleteObject(bucket: string, objectPaths: string[]) {
+  const { config, token, apikey } = getAuthContext();
+  const response = await fetch(`${config.url}/storage/v1/object/${bucket}`, {
+    method: 'DELETE',
+    headers: {
+      apikey,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ prefixes: objectPaths })
+  });
+
+  if (!response.ok) {
+    throw new Error(await buildSupabaseError(response, 'Suppression fichier impossible'));
+  }
+}
+
+export async function supabaseCreateSignedObjectUrl(bucket: string, objectPath: string, expiresIn = 3600) {
+  const { config, token, apikey } = getAuthContext();
+  const response = await fetch(`${config.url}/storage/v1/object/sign/${bucket}/${objectPath}`, {
+    method: 'POST',
+    headers: {
+      apikey,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ expiresIn })
+  });
+
+  if (!response.ok) {
+    throw new Error(await buildSupabaseError(response, 'Génération URL document impossible'));
+  }
+
+  const payload = (await response.json()) as { signedURL?: string };
+  if (!payload.signedURL) return '';
+
+  return `${config.url}/storage/v1${payload.signedURL}`;
 }

@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Client } from '@/lib/types';
 import { createActivityLog } from '@/lib/repositories/activity-logs';
-import { createClient, listClients } from '@/lib/repositories/clients';
+import { createClient, deleteClient, listClients } from '@/lib/repositories/clients';
 import { listProjects } from '@/lib/repositories/projects';
 
 const emptyClientDraft = {
@@ -84,6 +84,20 @@ export default function ClientsPage() {
     }
   };
 
+  const handleDeleteClient = async (client: Client) => {
+    try {
+      await deleteClient(client.id);
+      setClientItems((current) => current.filter((entry) => entry.id !== client.id));
+      await createActivityLog({
+        actionType: 'client_deleted',
+        message: `Client supprimé : ${client.firstName} ${client.lastName}.`,
+        clientId: client.id
+      });
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : 'Suppression impossible');
+    }
+  };
+
   return (
     <section className="space-y-6 animate-fadeIn">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -122,6 +136,7 @@ export default function ClientsPage() {
                 <th className="px-4 py-3">Email</th>
                 <th className="px-4 py-3">Téléphone</th>
                 <th className="px-4 py-3">Chantiers liés</th>
+                <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -135,6 +150,11 @@ export default function ClientsPage() {
                   <td className="px-4 py-3.5 text-muted">{client.email || 'Non renseigné'}</td>
                   <td className="px-4 py-3.5 text-muted">{client.phone || 'Non renseigné'}</td>
                   <td className="px-4 py-3.5">{projectCountByClient[client.id] ?? 0}</td>
+                  <td className="px-4 py-3.5 text-right">
+                    <button className="text-xs text-rose-700 underline" onClick={() => void handleDeleteClient(client)}>
+                      Supprimer
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
