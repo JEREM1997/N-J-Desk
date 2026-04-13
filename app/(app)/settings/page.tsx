@@ -1,7 +1,15 @@
+'use client';
+
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { signOut } from '@/lib/supabase';
 
 export default function SettingsPage() {
+  const logout = async () => {
+    await signOut();
+    window.location.href = '/login';
+  };
+
   return (
     <section className="space-y-6 animate-fadeIn">
       <div>
@@ -27,6 +35,9 @@ export default function SettingsPage() {
           <input type="checkbox" />
         </label>
         <Button className="w-fit">Enregistrer</Button>
+        <Button className="w-fit border border-zinc-300 bg-zinc-100 text-zinc-800 shadow-none hover:bg-zinc-200" onClick={logout}>
+          Se déconnecter
+        </Button>
       </Card>
     </section>
   );

@@ -4,7 +4,7 @@ import type { Route } from 'next';
 import type { ComponentType } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, Hammer, CheckSquare, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, Hammer, CheckSquare, Wallet, FolderOpen, Wrench, Settings } from 'lucide-react';
 import { BrandLogo } from './brand-logo';
 import { cn } from '@/lib/utils';
 
@@ -13,6 +13,9 @@ const links: { href: Route; label: string; icon: ComponentType<{ className?: str
   { href: '/clients', label: 'Clients', icon: Users },
   { href: '/projects', label: 'Chantiers', icon: Hammer },
   { href: '/tasks', label: 'Tâches', icon: CheckSquare },
+  { href: '/finance', label: 'Finances', icon: Wallet },
+  { href: '/documents', label: 'Documents', icon: FolderOpen },
+  { href: '/sav', label: 'SAV', icon: Wrench },
   { href: '/settings', label: 'Paramètres', icon: Settings }
 ];
 
