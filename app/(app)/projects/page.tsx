@@ -19,9 +19,12 @@ const statusLabel: Record<ProjectStatus, string> = {
   sav: 'SAV'
 };
 
-function getCityFromAddress(address: string) {
-  const chunks = address.split(',').map((chunk) => chunk.trim()).filter(Boolean);
-  return chunks[chunks.length - 1] ?? '';
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat('fr-CH', {
+    style: 'currency',
+    currency: 'CHF',
+    maximumFractionDigits: 0
+  }).format(value || 0);
 }
 
 function formatCurrency(value: number) {
@@ -172,7 +175,6 @@ export default function ProjectsPage() {
         <div className="space-y-4">
           {sortedProjects.map((project) => {
             const client = clients.find((entry) => entry.id === project.clientId);
-            const city = getCityFromAddress(project.address);
             const isEditing = editingProjectId === project.id;
             const remainingToBill = Math.max(project.quoteAmount - project.billedAmount, 0);
             const remainingToCollect = Math.max(project.quoteAmount - project.balanceReceived, 0);
@@ -182,10 +184,7 @@ export default function ProjectsPage() {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h2 className="text-lg font-semibold tracking-tight">{project.title}</h2>
-                    <p className="text-sm text-muted">
-                      {project.address}
-                      {city && client?.postalCode ? ` · ${client.postalCode} ${city}` : ''}
-                    </p>
+                    <p className="text-sm text-muted">{project.address}</p>
                   </div>
                   <Badge tone={project.status === 'en_cours' ? 'success' : 'default'}>{statusLabel[project.status]}</Badge>
                 </div>
