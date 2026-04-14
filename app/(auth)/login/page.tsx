@@ -39,15 +39,15 @@ export default function LoginPage() {
       </div>
       <form className="space-y-4" onSubmit={handleSubmit}>
         <label className="block space-y-1.5">
-          <span className="text-xs font-medium uppercase tracking-[0.12em] text-muted">Email</span>
+          <span>Email</span>
           <input className="w-full" type="email" placeholder="vous@entreprise.com" value={email} onChange={(event) => setEmail(event.target.value)} required />
         </label>
         <label className="block space-y-1.5">
-          <span className="text-xs font-medium uppercase tracking-[0.12em] text-muted">Mot de passe</span>
+          <span>Mot de passe</span>
           <input className="w-full" type="password" placeholder="••••••••" value={password} onChange={(event) => setPassword(event.target.value)} required />
         </label>
-        {error && <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">{error}</p>}
-        <Button className="w-full py-3.5" disabled={loading}>{loading ? 'Connexion en cours…' : 'Se connecter'}</Button>
+        {error && <p className="form-error text-xs">{error}</p>}
+        <Button className="w-full" size="lg" disabled={loading}>{loading ? 'Connexion en cours…' : 'Se connecter'}</Button>
       </form>
       <div className="space-y-3">
         <div className="h-px w-full bg-gradient-to-r from-transparent via-zinc-200 to-transparent" />

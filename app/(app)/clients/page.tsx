@@ -112,7 +112,7 @@ export default function ClientsPage() {
         </div>
       </div>
 
-      {error && <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+      {error && <p className="form-error">{error}</p>}
 
       <Card className="space-y-3 p-4 sm:p-5">
         <h2 className="text-sm font-semibold">Créer un client</h2>
@@ -146,39 +146,39 @@ export default function ClientsPage() {
                     <p className="text-xs text-muted">{client.phone || 'Téléphone non renseigné'}</p>
                     <div className="mt-2 flex items-center justify-between">
                       <p className="text-xs text-muted">Chantiers liés : {projectCountByClient[client.id] ?? 0}</p>
-                      <button className="text-xs font-medium text-rose-700 underline" onClick={() => void handleDeleteClient(client)}>
+                      <Button size="sm" variant="destructive" onClick={() => void handleDeleteClient(client)}>
                         Supprimer
-                      </button>
+                      </Button>
                     </div>
                   </li>
                 ))}
               </ul>
             </div>
-            <table className="hidden w-full text-sm md:table">
+            <table className="data-table hidden md:table">
               <thead className="table-head">
                 <tr>
-                  <th className="px-4 py-3">Nom</th>
-                  <th className="px-4 py-3">Email</th>
-                  <th className="px-4 py-3">Téléphone</th>
-                  <th className="px-4 py-3">Chantiers liés</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                  <th>Nom</th>
+                  <th>Email</th>
+                  <th>Téléphone</th>
+                  <th>Chantiers liés</th>
+                  <th className="text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredClients.map((client) => (
-                  <tr key={client.id} className="border-t border-black/[0.04] transition-colors hover:bg-black/[0.02]">
-                    <td className="px-4 py-3.5 font-medium">
+                  <tr key={client.id}>
+                    <td className="font-medium">
                       <Link className="hover:underline" href={`/clients/${client.id}`}>
                         {client.firstName} {client.lastName}
                       </Link>
                     </td>
-                    <td className="px-4 py-3.5 text-muted">{client.email || 'Non renseigné'}</td>
-                    <td className="px-4 py-3.5 text-muted">{client.phone || 'Non renseigné'}</td>
-                    <td className="px-4 py-3.5">{projectCountByClient[client.id] ?? 0}</td>
-                    <td className="px-4 py-3.5 text-right">
-                      <button className="text-xs text-rose-700 underline" onClick={() => void handleDeleteClient(client)}>
+                    <td className="text-muted">{client.email || 'Non renseigné'}</td>
+                    <td className="text-muted">{client.phone || 'Non renseigné'}</td>
+                    <td>{projectCountByClient[client.id] ?? 0}</td>
+                    <td className="text-right">
+                      <Button size="sm" variant="destructive" onClick={() => void handleDeleteClient(client)}>
                         Supprimer
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))}

@@ -35,6 +35,10 @@ select {
   @apply focus:border-accent/45 focus:ring-4 focus:ring-accent/10;
 }
 
+label {
+  @apply text-xs font-medium uppercase tracking-[0.12em] text-muted;
+}
+
 textarea {
   @apply min-h-24;
 }
@@ -62,6 +66,23 @@ textarea {
 
   .table-head {
     @apply bg-zinc-900/[0.03] text-left text-[11px] uppercase tracking-[0.08em] text-muted;
+  }
+
+  .data-table {
+    @apply w-full text-sm;
+  }
+
+  .data-table tbody tr {
+    @apply border-t border-black/[0.04] transition-colors hover:bg-black/[0.02];
+  }
+
+  .data-table th,
+  .data-table td {
+    @apply px-4 py-3.5;
+  }
+
+  .form-error {
+    @apply rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700;
   }
 
   .skeleton {

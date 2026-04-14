@@ -168,7 +168,7 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {error && <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+      {error && <p className="form-error">{error}</p>}
 
       {loading ? (
         <Card className="space-y-3">
@@ -292,10 +292,10 @@ export default function ProjectsPage() {
                 )}
 
                 <div className="flex gap-2">
-                  <Button className="bg-zinc-900" onClick={() => setEditingProjectId(isEditing ? null : project.id)}>
+                  <Button variant={isEditing ? 'secondary' : 'primary'} onClick={() => setEditingProjectId(isEditing ? null : project.id)}>
                     {isEditing ? 'Terminer la modification' : 'Modifier'}
                   </Button>
-                  <Button className="border border-zinc-300 bg-zinc-100 text-zinc-800 shadow-none hover:bg-zinc-200" onClick={() => void handleDeleteProject(project.id)}>
+                  <Button variant="destructive" onClick={() => void handleDeleteProject(project.id)}>
                     Supprimer
                   </Button>
                 </div>
