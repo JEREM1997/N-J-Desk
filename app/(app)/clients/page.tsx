@@ -74,12 +74,17 @@ export default function ClientsPage() {
       });
 
       setClientItems((current) => [created, ...current]);
-      await createActivityLog({
-        actionType: 'client_created',
-        message: `Nouveau client créé : ${created.firstName} ${created.lastName}.`,
-        clientId: created.id
-      });
       setDraft(emptyClientDraft);
+
+      try {
+        await createActivityLog({
+          actionType: 'client_created',
+          message: `Nouveau client créé : ${created.firstName} ${created.lastName}.`,
+          clientId: created.id
+        });
+      } catch (activityError) {
+        console.warn('Journalisation client_created impossible', activityError);
+      }
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : 'Création impossible');
     }
@@ -87,13 +92,18 @@ export default function ClientsPage() {
 
   const handleDeleteClient = async (client: Client) => {
     try {
+      try {
+        await createActivityLog({
+          actionType: 'client_deleted',
+          message: `Client supprimé : ${client.firstName} ${client.lastName}.`,
+          clientId: client.id
+        });
+      } catch (activityError) {
+        console.warn('Journalisation client_deleted impossible', activityError);
+      }
+
       await deleteClient(client.id);
       setClientItems((current) => current.filter((entry) => entry.id !== client.id));
-      await createActivityLog({
-        actionType: 'client_deleted',
-        message: `Client supprimé : ${client.firstName} ${client.lastName}.`,
-        clientId: client.id
-      });
     } catch (deleteError) {
       setError(deleteError instanceof Error ? deleteError.message : 'Suppression impossible');
     }
