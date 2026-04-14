@@ -21,7 +21,7 @@ export default function SettingsPage() {
         <p className="text-sm text-muted">
           Déconnectez-vous pour changer de compte ou sécuriser l&apos;accès depuis cet appareil.
         </p>
-        <Button className="w-fit border border-zinc-300 bg-zinc-100 text-zinc-800 shadow-none hover:bg-zinc-200" onClick={logout}>
+        <Button className="w-fit" variant="secondary" onClick={logout}>
           Se déconnecter
         </Button>
       </Card>

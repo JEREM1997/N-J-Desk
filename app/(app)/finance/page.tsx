@@ -68,26 +68,26 @@ export default function FinancePage() {
                 );
               })}
             </div>
-            <table className="hidden w-full text-sm md:table">
+            <table className="data-table hidden md:table">
               <thead className="table-head">
                 <tr>
-                  <th className="px-4 py-3">Chantier</th>
-                  <th className="px-4 py-3">Devis</th>
-                  <th className="px-4 py-3">Facturé</th>
-                  <th className="px-4 py-3">Encaissé</th>
-                  <th className="px-4 py-3">Reste</th>
+                  <th>Chantier</th>
+                  <th>Devis</th>
+                  <th>Facturé</th>
+                  <th>Encaissé</th>
+                  <th>Reste</th>
                 </tr>
               </thead>
               <tbody>
                 {projects.map((project) => {
                   const remaining = Math.max(project.quoteAmount - project.balanceReceived, 0);
                   return (
-                    <tr key={project.id} className="border-t border-black/[0.04]">
-                      <td className="px-4 py-3.5 font-medium">{project.title}</td>
-                      <td className="px-4 py-3.5">{chf(project.quoteAmount)}</td>
-                      <td className="px-4 py-3.5">{chf(project.billedAmount)}</td>
-                      <td className="px-4 py-3.5">{chf(project.balanceReceived)}</td>
-                      <td className="px-4 py-3.5 font-semibold text-rose-700">{chf(remaining)}</td>
+                    <tr key={project.id}>
+                      <td className="font-medium">{project.title}</td>
+                      <td>{chf(project.quoteAmount)}</td>
+                      <td>{chf(project.billedAmount)}</td>
+                      <td>{chf(project.balanceReceived)}</td>
+                      <td className="font-semibold text-rose-700">{chf(remaining)}</td>
                     </tr>
                   );
                 })}

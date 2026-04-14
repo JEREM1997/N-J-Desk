@@ -105,7 +105,7 @@ export default function DocumentsPage() {
         <p className="text-sm text-muted">Centralisation des pièces chantier et suivi visuel avant/après.</p>
       </div>
 
-      {error && <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+      {error && <p className="form-error">{error}</p>}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="space-y-3">
@@ -178,9 +178,9 @@ export default function DocumentsPage() {
                   ) : (
                     <span className="text-xs text-muted">URL temporaire indisponible</span>
                   )}
-                  <button className="text-xs text-rose-700 underline" onClick={() => void handleDeleteDocument(document.id)}>
+                  <Button size="sm" variant="destructive" onClick={() => void handleDeleteDocument(document.id)}>
                     Supprimer
-                  </button>
+                  </Button>
                 </div>
               </li>
             ))}
@@ -202,9 +202,9 @@ export default function DocumentsPage() {
                   ) : (
                     <span className="text-xs text-muted">URL temporaire indisponible</span>
                   )}
-                  <button className="text-xs text-rose-700 underline" onClick={() => void handleDeletePhoto(photo.id)}>
+                  <Button size="sm" variant="destructive" onClick={() => void handleDeletePhoto(photo.id)}>
                     Supprimer
-                  </button>
+                  </Button>
                 </div>
               </li>
             ))}

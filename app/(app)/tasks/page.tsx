@@ -97,7 +97,7 @@ export default function TasksPage() {
         <h1 className="luxury-title">Tâches</h1>
         <p className="text-sm text-muted">Pilotage des urgences et échéances.</p>
       </div>
-      {error && <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+      {error && <p className="form-error">{error}</p>}
       <Card className="space-y-5">
         <div className="grid gap-3 md:grid-cols-6">
           <input className="md:col-span-2" placeholder="Nouvelle tâche" value={title} onChange={(event) => setTitle(event.target.value)} />
@@ -140,10 +140,10 @@ export default function TasksPage() {
                   </div>
                   <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
                     <Badge tone={task.priority === 'critique' ? 'warning' : 'muted'}>{task.priority}</Badge>
-                    <Button className="px-3 py-1.5 text-xs" onClick={() => void handleToggleStatus(task)}>
+                    <Button size="sm" variant="secondary" onClick={() => void handleToggleStatus(task)}>
                       {task.status === 'done' ? 'Rouvrir' : 'Terminer'}
                     </Button>
-                    <Button className="border border-zinc-300 bg-zinc-100 px-3 py-1.5 text-xs text-zinc-800 shadow-none hover:bg-zinc-200" onClick={() => void handleDeleteTask(task)}>
+                    <Button size="sm" variant="destructive" onClick={() => void handleDeleteTask(task)}>
                       Supprimer
                     </Button>
                   </div>

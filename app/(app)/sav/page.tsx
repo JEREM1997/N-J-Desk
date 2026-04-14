@@ -101,7 +101,7 @@ export default function SavPage() {
         <p className="text-sm text-muted">Suivi des interventions post-livraison et réserves.</p>
       </div>
 
-      {error && <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+      {error && <p className="form-error">{error}</p>}
 
       <Card className="space-y-3">
         <h2 className="text-sm font-semibold">Créer un ticket SAV</h2>
@@ -157,10 +157,7 @@ export default function SavPage() {
                     <option value="planifie">Planifié</option>
                     <option value="resolu">Résolu</option>
                   </select>
-                  <Button
-                    className="border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs text-rose-700 shadow-none hover:bg-rose-100"
-                    onClick={() => void handleDeleteTicket(ticket.id)}
-                  >
+                  <Button size="sm" variant="destructive" onClick={() => void handleDeleteTicket(ticket.id)}>
                     Supprimer
                   </Button>
                 </div>
